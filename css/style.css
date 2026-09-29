@@ -21,3 +21,12 @@
     height: 250px;
     object-fit: cover;
 }
+
+/* Color en Hover para enlaces del Footer y redes sociales */
+.hover-warning {
+    transition: color 0.3s ease;
+}
+
+.hover-warning:hover {
+    color: #ffc107 !important;
+}

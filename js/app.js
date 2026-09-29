@@ -1,37 +1,73 @@
 // Lógica básica con JavaScript (Vanilla) para explicar en la entrega
 
-// Esperar a que todo el HTML se cargue antes de ejecutar el código
 document.addEventListener('DOMContentLoaded', () => {
     
-    // 1. Obtener todas las referencias a los botones "Agregar al Carrito"
+    // -------------------------------------------------------------
+    // LÓGICA DEL CARRITO (Botones de las Cards)
+    // -------------------------------------------------------------
     const botonesAgregar = document.querySelectorAll('.btn-agregar');
     const contadorCarrito = document.getElementById('contador-carrito');
     
-    // Variable para llevar la cuenta
     let totalItems = 0;
 
-    // 2. Por cada botón, asignarle un evento de "click"
+    // Función genérica para manejar la animación del botón
+    const animarBoton = (boton) => {
+        totalItems++;
+        contadorCarrito.textContent = totalItems;
+        
+        const btnOriginalText = boton.innerHTML;
+        boton.innerHTML = "<i class='bi bi-check-circle'></i> ¡Agregado!";
+        boton.classList.replace('btn-warning', 'btn-success');
+
+        setTimeout(() => {
+            boton.innerHTML = btnOriginalText;
+            boton.classList.replace('btn-success', 'btn-warning');
+        }, 1500);
+    };
+
     botonesAgregar.forEach(boton => {
         boton.addEventListener('click', (event) => {
-            
-            // Subir el contador
-            totalItems++;
-            
-            // Actualizar el numerito en el HTML (Navbar)
-            contadorCarrito.textContent = totalItems;
-
-            // Animación sencilla del botón al hacer click
-            const btnOriginalText = event.target.textContent;
-            event.target.textContent = "¡Agregado!";
-            event.target.classList.replace('btn-warning', 'btn-success');
-
-            // Volver el botón a la normalidad después de 1 segundo
-            setTimeout(() => {
-                event.target.textContent = btnOriginalText;
-                event.target.classList.replace('btn-success', 'btn-warning');
-            }, 1000);
-
+            animarBoton(event.target);
         });
+    });
+
+
+    // -------------------------------------------------------------
+    // LÓGICA DEL MODAL (Detalle del Producto)
+    // -------------------------------------------------------------
+    const botonesDetalle = document.querySelectorAll('.btn-detalle');
+    
+    // Referencias a los elementos dentro de la ventana flotante (Modal)
+    const modalImg = document.getElementById('modalImg');
+    const modalTitulo = document.getElementById('modalTitulo');
+    const modalDesc = document.getElementById('modalDesc');
+    const modalPrecio = document.getElementById('modalPrecio');
+    const btnAgregarModal = document.getElementById('btn-agregar-modal');
+
+    // Cuando se hace clic en "Ver Detalle" en alguna tarjeta
+    botonesDetalle.forEach(boton => {
+        boton.addEventListener('click', (event) => {
+            // Obtener la "tarjeta" que contiene toda la info del producto
+            const tarjeta = event.target.closest('.card-gamer');
+            
+            // Extraer la información desde el HTML de la tarjeta
+            const imagenSrc = tarjeta.querySelector('.card-img-top').src;
+            const titulo = tarjeta.querySelector('.card-title').textContent;
+            const descripcion = tarjeta.querySelector('.card-text').textContent;
+            const precio = tarjeta.querySelector('h4').textContent;
+
+            // Inyectar esa información dentro del Modal
+            modalImg.src = imagenSrc;
+            modalTitulo.textContent = titulo;
+            // Expandimos un poco la descripción para que el modal no se vea vacío
+            modalDesc.textContent = descripcion + " Aprovecha esta increíble oportunidad para añadir este artículo a tu colección. Cuenta con garantía y envío seguro.";
+            modalPrecio.textContent = precio;
+        });
+    });
+
+    // Agregar al carrito desde dentro del Modal
+    btnAgregarModal.addEventListener('click', (event) => {
+        animarBoton(event.currentTarget);
     });
 
 });
