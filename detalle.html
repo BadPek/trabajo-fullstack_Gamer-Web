@@ -3,108 +3,406 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Detalle del Producto - GamerZone</title>
+    <title>Detalle del Juego - GamerZone</title>
+    <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        /* Estilos específicos ficha Steam / G2A */
+        .steam-box {
+            background-color: #fcfaff;
+            border: 1px solid #e0ccf7;
+            border-radius: 12px;
+        }
+        .requisitos-box {
+            background-color: #1a0826;
+            color: #d1c4e9;
+            border-radius: 12px;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            font-size: 0.92rem;
+        }
+        .requisitos-box h5, .requisitos-box strong {
+            color: #ffffff;
+        }
+        .thumb-img {
+            height: 70px;
+            object-fit: cover;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: all 0.2s ease;
+            opacity: 0.75;
+        }
+        .thumb-img:hover, .thumb-img.active {
+            border-color: #5a189a;
+            opacity: 1;
+            transform: scale(1.05);
+        }
+        .table-idiomas th, .table-idiomas td {
+            font-size: 0.85rem;
+            padding: 0.4rem;
+        }
+    </style>
 </head>
-<body class="bg-dark text-light">
+<body class="bg-white text-dark">
 
-    <nav class="navbar navbar-expand-lg navbar-dark bg-black sticky-top">
+    <!-- NAVBAR UNIFICADO MORADO -->
+    <nav class="navbar navbar-expand-lg navbar-dark navbar-purple sticky-top" style="background: linear-gradient(135deg, #3c096c 0%, #5a189a 100%) !important;">
         <div class="container">
-            <a class="navbar-brand text-warning fw-bold" href="index.html">
-                <i class="bi bi-controller"></i> GamerZone
+            <a class="navbar-brand fw-bold fs-4 d-flex align-items-center" href="index.html">
+                <i class="bi bi-controller me-2 fs-3 text-warning"></i> GamerZone
             </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav me-auto">
-                    <li class="nav-item"><a class="nav-link" href="index.html">Inicio</a></li>
-                    <li class="nav-item"><a class="nav-link" href="productos.html">Juegos</a></li>
-                    <li class="nav-item"><a class="nav-link" href="#">Figuras y Coleccionables</a></li>
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item"><a class="nav-link" href="index.html"><i class="bi bi-house-door me-1"></i> Inicio</a></li>
+                    <li class="nav-item"><a class="nav-link active" href="productos.html"><i class="bi bi-grid me-1"></i> Juegos</a></li>
+                    <li class="nav-item"><a class="nav-link" href="nosotros.html"><i class="bi bi-people me-1"></i> Nosotros</a></li>
+                    <li class="nav-item"><a class="nav-link" href="blog.html"><i class="bi bi-newspaper me-1"></i> Noticias</a></li>
+                    <li class="nav-item"><a class="nav-link" href="contacto.html"><i class="bi bi-envelope me-1"></i> Contacto</a></li>
                 </ul>
-                <button class="btn btn-outline-warning d-flex align-items-center" type="button">
-                    <i class="bi bi-cart-fill me-2"></i> Carrito
-                    <span class="badge bg-warning text-dark ms-2" id="contador-carrito">0</span>
-                </button>
+                <div class="d-flex gap-2 align-items-center flex-wrap">
+                    <a href="login.html" class="btn btn-outline-light btn-sm px-3">Iniciar Sesión</a>
+                    <a href="registro.html" class="btn btn-light btn-sm text-purple fw-bold px-3">Registrarse</a>
+                    <a href="carrito.html" class="btn btn-warning btn-sm d-flex align-items-center ms-lg-2 fw-bold" id="btn-carrito">
+                        <i class="bi bi-cart3 me-1"></i> Carrito
+                        <span class="badge bg-dark ms-2" id="contador-carrito">0</span>
+                    </a>
+                </div>
             </div>
         </div>
     </nav>
 
-    <div class="container my-5">
-        <a href="productos.html" class="btn btn-outline-warning mb-4">
-            <i class="bi bi-arrow-left"></i> Volver a Productos
-        </a>
+    <!-- FICHA COMPLETA ESTILO STEAM & G2A -->
+    <main class="container my-5 flex-grow-1">
 
-        <div id="detalle-container" class="row">
-            <div class="col-md-6">
-                <img id="detalle-imagen" src="" class="img-fluid border border-warning rounded" alt="Producto">
-            </div>
-            <div class="col-md-6">
-                <h1 id="detalle-titulo" class="text-warning mb-3"></h1>
-                <p id="detalle-descripcion" class="mb-4 text-light"></p>
-                
-                <div class="mb-4">
-                    <h3 class="text-warning">$<span id="detalle-precio"></span></h3>
+        <!-- Breadcrumb & Botón Volver -->
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-0">
+                    <li class="breadcrumb-item"><a href="index.html" class="text-purple">Inicio</a></li>
+                    <li class="breadcrumb-item"><a href="productos.html" class="text-purple">Juegos</a></li>
+                    <li class="breadcrumb-item active" id="breadcrumb-titulo">Cargando...</li>
+                </ol>
+            </nav>
+            <a href="productos.html" class="btn btn-outline-purple btn-sm">
+                <i class="bi bi-arrow-left me-1"></i> Catálogo
+            </a>
+        </div>
+
+        <!-- TÍTULO PRINCIPAL & VALORACIÓN -->
+        <div class="mb-4">
+            <h1 class="display-6 fw-bold text-dark mb-1" id="detalle-titulo">Cargando Título...</h1>
+            <div class="d-flex align-items-center gap-2 flex-wrap">
+                <div class="text-warning">
+                    <i class="bi bi-star-fill"></i>
+                    <i class="bi bi-star-fill"></i>
+                    <i class="bi bi-star-fill"></i>
+                    <i class="bi bi-star-fill"></i>
+                    <i class="bi bi-star-fill"></i>
                 </div>
+                <span class="fw-bold text-purple" id="detalle-rating">4.9 / 5.0</span>
+                <span class="text-muted small">| Reseñas generales: <strong>Extremadamente positivas</strong> (Steam Verified)</span>
+            </div>
+        </div>
 
-                <div class="mb-4">
-                    <h5 class="text-warning">Detalles:</h5>
-                    <ul id="detalle-especificaciones" class="list-group list-group-flush bg-transparent">
+        <!-- SECCIÓN 1: GALERÍA DE IMÁGENES & VIDEO + PANEL DE COMPRA (Estilo G2A) -->
+        <div class="row g-4 mb-5">
+            <!-- Visor Multimedia (Video y Fotos) -->
+            <div class="col-12 col-lg-7">
+                <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-3 position-relative" style="height: 400px; background-color: #0b0211;">
+                    <img id="imagen-principal" src="" class="w-100 h-100" style="object-fit: cover;" alt="Captura principal del juego">
+                    <video id="video-principal" controls class="w-100 h-100 d-none" style="object-fit: cover;" poster="src/img/baldurs_gate.jpg">
+                        <source id="video-source" src="" type="video/webm">
+                        Tu navegador no soporta el formato de video.
+                    </video>
+                </div>
+                <!-- Miniaturas clicables (Thumbnails) -->
+                <div class="row g-2" id="galeria-thumbnails">
+                    <!-- Se inyectan con JavaScript -->
+                </div>
+            </div>
+
+            <!-- Panel de Compra y Datos Clave -->
+            <div class="col-12 col-lg-5">
+                <div class="card border-0 shadow-sm p-4 rounded-4 bg-purple-light h-100 d-flex flex-column justify-content-between">
+                    <div>
+                        <span class="badge bg-purple px-3 py-2 fs-6 mb-3" id="detalle-categoria">Videojuego Oficial</span>
+                        <p class="text-secondary small mb-4" id="detalle-descripcion-corta">
+                            Cargando sinopsis corta...
+                        </p>
+
+                        <!-- Caja de Precio y Edición -->
+                        <div class="bg-white p-3 rounded-3 border mb-4">
+                            <span class="text-muted small d-block">Precio Final (IVA incluido):</span>
+                            <div class="d-flex align-items-baseline gap-2">
+                                <span class="display-5 fw-bold text-purple" id="detalle-precio">$0</span>
+                                <span class="badge bg-success-subtle text-success">Clave Digital Global</span>
+                            </div>
+                        </div>
+
+                        <!-- Selector de cantidad -->
+                        <div class="mb-4">
+                            <label class="form-label small fw-semibold text-secondary mb-1">Cantidad de licencias</label>
+                            <div class="input-group" style="max-width: 140px;">
+                                <button class="btn btn-outline-purple" type="button" onclick="ajustarCantidadDetalle(-1)">-</button>
+                                <input type="number" id="cantidadDetalle" class="form-control text-center fw-bold" value="1" min="1" max="5" readonly>
+                                <button class="btn btn-outline-purple" type="button" onclick="ajustarCantidadDetalle(1)">+</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Botón de Compra -->
+                    <div>
+                        <button class="btn btn-purple btn-lg w-100 fw-bold shadow-sm py-3 mb-2" id="btn-comprar-detalle">
+                            <i class="bi bi-cart-plus me-2 fs-5"></i> AÑADIR AL CARRITO
+                        </button>
+                        <div class="text-center">
+                            <small class="text-muted"><i class="bi bi-shield-check text-success me-1"></i> Activación inmediata en Steam / Consola</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SECCIÓN 2: ACERCA DE ESTE JUEGO + SIDEBAR DE METADATOS (Estilo Steam) -->
+        <div class="row g-4 mb-5">
+            <!-- Bloque Editorial "Acerca de este juego" -->
+            <div class="col-12 col-lg-8">
+                <div class="card border-0 shadow-sm p-4 p-md-5 rounded-4 bg-white">
+                    <h3 class="text-purple fw-bold mb-4 pb-2 border-bottom border-purple">
+                        <i class="bi bi-info-circle me-2"></i> Acerca de este juego
+                    </h3>
+                    <div id="contenido-acerca-de" class="text-secondary leading-relaxed fs-6">
+                        <!-- Se llena dinámicamente -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sidebar de Atributos del Juego (Steam Sidebar) -->
+            <div class="col-12 col-lg-4">
+                <div class="card border-0 shadow-sm p-4 rounded-4 bg-purple-light mb-4">
+                    <h6 class="text-purple fw-bold mb-3 text-uppercase">Características</h6>
+                    <ul class="list-unstyled mb-0 small" id="lista-modos-juego">
+                        <li class="mb-2"><i class="bi bi-person-fill text-purple me-2 fs-6"></i> Un jugador</li>
+                        <li class="mb-2"><i class="bi bi-people-fill text-purple me-2 fs-6"></i> Cooperativo en línea</li>
+                        <li class="mb-2"><i class="bi bi-trophy text-purple me-2 fs-6"></i> Logros de Steam</li>
+                        <li class="mb-2"><i class="bi bi-cloud-check text-purple me-2 fs-6"></i> Guardado en la nube</li>
+                        <li class="mb-0"><i class="bi bi-controller text-purple me-2 fs-6"></i> Compatible con mando</li>
                     </ul>
                 </div>
 
-                <button id="btn-agregar-detalle" class="btn btn-warning btn-lg btn-agregar w-100">
-                    <i class="bi bi-cart-plus"></i> Agregar al Carrito
-                </button>
+                <div class="card border-0 shadow-sm p-4 rounded-4 bg-white">
+                    <h6 class="text-purple fw-bold mb-3 text-uppercase">Ficha Técnica</h6>
+                    <dl class="row mb-0 small text-secondary">
+                        <dt class="col-5">Desarrollador:</dt>
+                        <dd class="col-7 text-dark fw-semibold" id="meta-desarrollador">-</dd>
+
+                        <dt class="col-5">Editor:</dt>
+                        <dd class="col-7 text-dark fw-semibold" id="meta-editor">-</dd>
+
+                        <dt class="col-5">Lanzamiento:</dt>
+                        <dd class="col-7 text-dark fw-semibold" id="meta-fecha">-</dd>
+                    </dl>
+                    <hr>
+                    <h6 class="text-purple fw-bold mb-2 small text-uppercase">Idiomas Disponibles</h6>
+                    <table class="table table-sm table-bordered table-idiomas text-center mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="text-start">Idioma</th>
+                                <th>Interfaz</th>
+                                <th>Voces</th>
+                                <th>Subtítulos</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="text-start">Español</td>
+                                <td class="text-success fw-bold"><i class="bi bi-check-lg"></i></td>
+                                <td class="text-success fw-bold"><i class="bi bi-check-lg"></i></td>
+                                <td class="text-success fw-bold"><i class="bi bi-check-lg"></i></td>
+                            </tr>
+                            <tr>
+                                <td class="text-start">Inglés</td>
+                                <td class="text-success fw-bold"><i class="bi bi-check-lg"></i></td>
+                                <td class="text-success fw-bold"><i class="bi bi-check-lg"></i></td>
+                                <td class="text-success fw-bold"><i class="bi bi-check-lg"></i></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
-    </div>
 
-    <footer class="bg-black text-center py-4 mt-5">
-        <p class="text-muted">&copy; 2024 GamerZone. Todos los derechos reservados.</p>
+        <!-- SECCIÓN 3: REQUISITOS DEL SISTEMA (IDÉNTICO A STEAM - 2 COLUMNAS) -->
+        <section class="mb-5">
+            <div class="requisitos-box p-4 p-md-5 shadow">
+                <h3 class="fw-bold mb-4 pb-2 border-bottom border-secondary text-white">
+                    <i class="bi bi-cpu me-2 text-warning"></i> Requisitos del Sistema
+                </h3>
+
+                <div class="row g-4">
+                    <!-- Columna Mínimo -->
+                    <div class="col-12 col-md-6 border-end border-secondary border-opacity-50">
+                        <h5 class="fw-bold text-uppercase mb-3 text-warning">Mínimo:</h5>
+                        <p class="small text-muted mb-3">Requiere un procesador y un sistema operativo de 64 bits</p>
+                        <ul class="list-unstyled mb-0 lh-lg" id="req-minimos">
+                            <!-- Se inyecta con JS -->
+                        </ul>
+                    </div>
+
+                    <!-- Columna Recomendado -->
+                    <div class="col-12 col-md-6 ps-md-4">
+                        <h5 class="fw-bold text-uppercase mb-3 text-warning">Recomendado:</h5>
+                        <p class="small text-muted mb-3">Requiere un procesador y un sistema operativo de 64 bits</p>
+                        <ul class="list-unstyled mb-0 lh-lg" id="req-recomendados">
+                            <!-- Se inyecta con JS -->
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="py-5 mt-auto">
+        <div class="container text-center">
+            <p class="mb-0 text-muted">&copy; 2026 GamerZone Store - Duoc UC. Todos los derechos reservados.</p>
+        </div>
     </footer>
 
+    <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="js/app.js"></script>
     <script>
+        let juegoActual = null;
+
+        function ajustarCantidadDetalle(cambio) {
+            const input = document.getElementById('cantidadDetalle');
+            let actual = parseInt(input.value) || 1;
+            actual = Math.max(1, Math.min(5, actual + cambio));
+            input.value = actual;
+        }
+
+        function mostrarVideoPrincipal(url, elemento) {
+            const img = document.getElementById('imagen-principal');
+            const vid = document.getElementById('video-principal');
+            const vSource = document.getElementById('video-source');
+            
+            img.classList.add('d-none');
+            vid.classList.remove('d-none');
+            vSource.src = url;
+            vid.load();
+            vid.play().catch(() => {});
+
+            document.querySelectorAll('.thumb-img').forEach(el => el.classList.remove('active'));
+            if (elemento) elemento.classList.add('active');
+        }
+
+        function cambiarFotoPrincipal(url, elemento) {
+            const img = document.getElementById('imagen-principal');
+            const vid = document.getElementById('video-principal');
+            
+            if (vid) {
+                vid.pause();
+                vid.classList.add('d-none');
+            }
+            img.classList.remove('d-none');
+            img.src = url;
+
+            document.querySelectorAll('.thumb-img').forEach(el => el.classList.remove('active'));
+            if (elemento) elemento.classList.add('active');
+        }
+
         document.addEventListener('DOMContentLoaded', () => {
             const urlParams = new URLSearchParams(window.location.search);
-            const productoId = parseInt(urlParams.get('id'));
+            const productoId = parseInt(urlParams.get('id')) || 1;
             const juegos = obtenerJuegos();
-            const juego = juegos.find(j => j.id === productoId);
+            juegoActual = juegos.find(j => j.id === productoId) || juegos[0];
 
-            if (juego) {
-                document.getElementById('detalle-imagen').src = juego.imagen;
-                document.getElementById('detalle-titulo').textContent = juego.titulo;
-                document.getElementById('detalle-descripcion').textContent = juego.descripcion;
-                document.getElementById('detalle-precio').textContent = juego.precio;
+            if (!juegoActual) return;
 
-                const especsList = document.getElementById('detalle-especificaciones');
-                juego.especificaciones.forEach(spec => {
-                    const li = document.createElement('li');
-                    li.className = 'list-group-item bg-secondary text-light';
-                    li.textContent = spec;
-                    especsList.appendChild(li);
-                });
+            // Datos principales
+            document.title = `${juegoActual.titulo} - GamerZone`;
+            document.getElementById('breadcrumb-titulo').textContent = juegoActual.titulo;
+            document.getElementById('detalle-titulo').textContent = juegoActual.titulo;
+            document.getElementById('detalle-categoria').textContent = juegoActual.categoria;
+            document.getElementById('detalle-precio').textContent = `$${juegoActual.precio.toLocaleString('es-CL')}`;
+            document.getElementById('detalle-descripcion-corta').textContent = juegoActual.descripcion_corta;
+            document.getElementById('imagen-principal').src = juegoActual.galeria[0] || juegoActual.imagen;
+
+            // Galería de thumbnails (Video primero si existe, luego fotos)
+            const thumbnailsContainer = document.getElementById('galeria-thumbnails');
+            thumbnailsContainer.innerHTML = '';
+
+            if (juegoActual.video) {
+                const colVid = document.createElement('div');
+                colVid.className = 'col-3 col-sm-2';
+                colVid.innerHTML = `
+                    <div class="w-100 rounded-3 thumb-img d-flex flex-column align-items-center justify-content-center bg-purple text-white text-center p-1"
+                         onclick="mostrarVideoPrincipal('${juegoActual.video}', this)" title="Ver Trailer Oficial" style="height: 70px;">
+                        <i class="bi bi-play-circle-fill fs-3 text-warning"></i>
+                        <span style="font-size: 0.65rem;" class="fw-bold">TRAILER</span>
+                    </div>
+                `;
+                thumbnailsContainer.appendChild(colVid);
             }
 
-            const btnAgregar = document.getElementById('btn-agregar-detalle');
-            const contadorCarrito = document.getElementById('contador-carrito');
-            let totalItems = parseInt(contadorCarrito.textContent);
+            juegoActual.galeria.forEach((foto, i) => {
+                const col = document.createElement('div');
+                col.className = 'col-3 col-sm-2';
+                col.innerHTML = `
+                    <img src="${foto}" class="w-100 rounded-3 thumb-img ${i === 0 && !juegoActual.video ? 'active' : ''}" 
+                         onclick="cambiarFotoPrincipal('${foto}', this)" alt="Captura ${i + 1}">
+                `;
+                thumbnailsContainer.appendChild(col);
+            });
 
-            btnAgregar.addEventListener('click', () => {
-                totalItems++;
-                contadorCarrito.textContent = totalItems;
-                
-                const btnOriginalHTML = btnAgregar.innerHTML;
-                btnAgregar.innerHTML = "<i class='bi bi-check-circle'></i> ¡Agregado!";
-                btnAgregar.classList.replace('btn-warning', 'btn-success');
+            // Acerca de este juego
+            document.getElementById('contenido-acerca-de').innerHTML = juegoActual.acerca_de;
 
+            // Ficha Técnica
+            if (juegoActual.detalles) {
+                document.getElementById('meta-desarrollador').textContent = juegoActual.detalles.desarrollador;
+                document.getElementById('meta-editor').textContent = juegoActual.detalles.editor;
+                document.getElementById('meta-fecha').textContent = juegoActual.detalles.fecha;
+            }
+
+            // Requisitos del sistema (Mínimos)
+            const reqMin = document.getElementById('req-minimos');
+            reqMin.innerHTML = `
+                <li><strong>SO:</strong> ${juegoActual.requisitos.minimos.so}</li>
+                <li><strong>PROCESADOR:</strong> ${juegoActual.requisitos.minimos.procesador}</li>
+                <li><strong>MEMORIA:</strong> ${juegoActual.requisitos.minimos.memoria}</li>
+                <li><strong>GRÁFICOS:</strong> ${juegoActual.requisitos.minimos.graficos}</li>
+                <li><strong>DIRECTX:</strong> ${juegoActual.requisitos.minimos.directx}</li>
+                <li><strong>ALMACENAMIENTO:</strong> ${juegoActual.requisitos.minimos.almacenamiento}</li>
+            `;
+
+            // Requisitos del sistema (Recomendados)
+            const reqRec = document.getElementById('req-recomendados');
+            reqRec.innerHTML = `
+                <li><strong>SO:</strong> ${juegoActual.requisitos.recomendados.so}</li>
+                <li><strong>PROCESADOR:</strong> ${juegoActual.requisitos.recomendados.procesador}</li>
+                <li><strong>MEMORIA:</strong> ${juegoActual.requisitos.recomendados.memoria}</li>
+                <li><strong>GRÁFICOS:</strong> ${juegoActual.requisitos.recomendados.graficos}</li>
+                <li><strong>DIRECTX:</strong> ${juegoActual.requisitos.recomendados.directx}</li>
+                <li><strong>ALMACENAMIENTO:</strong> ${juegoActual.requisitos.recomendados.almacenamiento}</li>
+            `;
+
+            // Botón Comprar
+            const btnComprar = document.getElementById('btn-comprar-detalle');
+            btnComprar.addEventListener('click', () => {
+                const cant = parseInt(document.getElementById('cantidadDetalle').value) || 1;
+                agregarAlCarrito(juegoActual.id, cant);
+                btnComprar.innerHTML = `<i class="bi bi-check-circle-fill me-2 fs-5"></i> ¡AÑADIDO CON ÉXITO!`;
+                btnComprar.classList.replace('btn-purple', 'btn-success');
                 setTimeout(() => {
-                    btnAgregar.innerHTML = btnOriginalHTML;
-                    btnAgregar.classList.replace('btn-success', 'btn-warning');
+                    btnComprar.innerHTML = `<i class="bi bi-cart-plus me-2 fs-5"></i> AÑADIR AL CARRITO`;
+                    btnComprar.classList.replace('btn-success', 'btn-purple');
                 }, 1500);
             });
         });
