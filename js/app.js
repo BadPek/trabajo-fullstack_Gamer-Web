@@ -11,6 +11,7 @@ const obtenerJuegos = () => [
         categoria: 'Action RPG / Fantasía Oscura',
         imagen: 'src/img/elden_ring.jpg',
         descripcion_corta: 'Álzate, Sinluz, y déjate guiar por la gracia para esgrimir el poder del Círculo de Elden y convertirte en el Señor del Círculo en las Tierras Intermedias.',
+        video: 'https://cdn.akamai.steamstatic.com/steam/apps/256870020/movie480_vp9.webm',
         galeria: [
             'src/img/elden_ring.jpg',
             'https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=800&fit=crop',
@@ -58,6 +59,7 @@ const obtenerJuegos = () => [
         categoria: 'RPG / Mundo Abierto Futurista',
         imagen: 'src/img/cyberpunk2077.jpeg',
         descripcion_corta: 'Cyberpunk 2077 es un RPG de acción y aventura de mundo abierto ambientado en la megalópolis de Night City, donde te pones en la piel de un mercenario cibernético.',
+        video: 'https://cdn.akamai.steamstatic.com/steam/apps/256805177/movie480_vp9.webm',
         galeria: [
             'src/img/cyberpunk2077.jpeg',
             'https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=800&fit=crop',
@@ -150,6 +152,7 @@ const obtenerJuegos = () => [
         categoria: 'Sci-Fi RPG / Exploración Espacial',
         imagen: 'src/img/starfield.jpeg',
         descripcion_corta: 'Starfield es el primer universo nuevo en más de 25 años de Bethesda Game Studios. Crea el personaje que quieras y explora con una libertad inigualable.',
+        video: 'https://cdn.akamai.steamstatic.com/steam/apps/256950290/movie480_vp9.webm',
         galeria: [
             'src/img/starfield.jpeg',
             'https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?q=80&w=800&fit=crop',
@@ -431,12 +434,14 @@ function renderizarCarrito() {
 
 // Algoritmo Oficial de Validación de RUT Chileno (Módulo 11)
 function validarRutChileno(rutCompleto) {
-    if (!rutCompleto || rutCompleto.length < 7 || rutCompleto.length > 9) return false;
+    if (!rutCompleto) return false;
     const rutLimpio = rutCompleto.replace(/[^0-9kK]/g, '').toUpperCase();
-    if (rutLimpio.length < 7) return false;
+    if (rutLimpio.length < 8 || rutLimpio.length > 9) return false;
 
     const cuerpo = rutLimpio.slice(0, -1);
     const dv = rutLimpio.slice(-1);
+
+    if (!/^\d+$/.test(cuerpo)) return false;
 
     let suma = 0;
     let multiplo = 2;
@@ -454,6 +459,116 @@ function validarRutChileno(rutCompleto) {
     return dv === dvEsperado;
 }
 
+// Configuración de autocompletado y sugerencias dinámicas de correo
+function configurarAutocompletadoCorreo(inputId, datalistId) {
+    const input = document.getElementById(inputId);
+    const datalist = document.getElementById(datalistId);
+    if (!input || !datalist) return;
+
+    const dominios = ['duoc.cl', 'profesor.duoc.cl', 'gmail.com'];
+    const actualizarDatalist = () => {
+        const val = input.value.trim();
+        datalist.innerHTML = '';
+        if (!val) return;
+
+        const partes = val.split('@');
+        const usuario = partes[0];
+        const dominioEscrito = partes.length > 1 ? partes[1].toLowerCase() : '';
+
+        if (usuario) {
+            dominios.forEach(dom => {
+                if (!dominioEscrito || dom.startsWith(dominioEscrito)) {
+                    const opt = document.createElement('option');
+                    opt.value = `${usuario}@${dom}`;
+                    datalist.appendChild(opt);
+                }
+            });
+        }
+    };
+
+    input.addEventListener('input', actualizarDatalist);
+    input.addEventListener('focus', actualizarDatalist);
+}
+
+// ===================================================
+// SISTEMA DE USUARIOS Y SESIÓN (LOCALSTORAGE)
+// ===================================================
+function obtenerUsuarios() {
+    let usuarios = JSON.parse(localStorage.getItem('gz_usuarios'));
+    if (!usuarios || !Array.isArray(usuarios) || usuarios.length === 0) {
+        usuarios = [
+            {
+                rut: '19011022-2',
+                nombre: 'Estudiante',
+                apellido: 'Duoc',
+                correo: 'estudiante@duoc.cl',
+                pass: '1234',
+                region: 'metropolitana',
+                comuna: 'Santiago Centro',
+                direccion: 'Av. España 8'
+            }
+        ];
+        localStorage.setItem('gz_usuarios', JSON.stringify(usuarios));
+    }
+    return usuarios;
+}
+
+function guardarUsuarios(usuarios) {
+    localStorage.setItem('gz_usuarios', JSON.stringify(usuarios));
+}
+
+function obtenerUsuarioActivo() {
+    return JSON.parse(localStorage.getItem('gz_usuario_activo'));
+}
+
+function guardarUsuarioActivo(usuario) {
+    localStorage.setItem('gz_usuario_activo', JSON.stringify(usuario));
+}
+
+function cerrarSesion() {
+    localStorage.removeItem('gz_usuario_activo');
+    alert('Has cerrado sesión correctamente.');
+    window.location.reload();
+}
+window.cerrarSesion = cerrarSesion;
+
+function actualizarEstadoSesionNavbar() {
+    const usuario = obtenerUsuarioActivo();
+    const navCollapse = document.querySelector('.navbar-collapse');
+    if (!navCollapse) return;
+
+    const linksLogin = navCollapse.querySelectorAll('a[href="login.html"]');
+    const linksRegistro = navCollapse.querySelectorAll('a[href="registro.html"]');
+
+    if (usuario) {
+        linksLogin.forEach(link => link.classList.add('d-none'));
+        linksRegistro.forEach(link => link.classList.add('d-none'));
+
+        // Evitar duplicar el botón de usuario
+        if (!document.getElementById('nav-user-dropdown')) {
+            const btnCarrito = navCollapse.querySelector('#btn-carrito');
+            const contUser = document.createElement('div');
+            contUser.id = 'nav-user-dropdown';
+            contUser.className = 'dropdown d-inline-block';
+            contUser.innerHTML = `
+                <button class="btn btn-outline-light btn-sm dropdown-toggle fw-bold d-flex align-items-center" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="bi bi-person-circle text-warning me-1 fs-6"></i> Hola, ${usuario.nombre}
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end shadow">
+                    <li><h6 class="dropdown-header text-purple"><i class="bi bi-person-check me-1"></i> Sesión Activa</h6></li>
+                    <li><span class="dropdown-item-text small text-muted"><i class="bi bi-envelope me-1"></i> ${usuario.correo}</span></li>
+                    ${usuario.rut ? `<li><span class="dropdown-item-text small text-muted"><i class="bi bi-card-text me-1"></i> RUT: ${usuario.rut}</span></li>` : ''}
+                    <li><hr class="dropdown-divider"></li>
+                    <li><button class="dropdown-item text-danger fw-semibold" onclick="cerrarSesion()"><i class="bi bi-box-arrow-right me-1"></i> Cerrar Sesión</button></li>
+                </ul>
+            `;
+            if (btnCarrito && btnCarrito.parentElement) {
+                btnCarrito.parentElement.insertBefore(contUser, btnCarrito);
+            }
+        }
+    }
+}
+
 // ===================================================
 // INICIALIZACIÓN GLOBAL EN DOMCONTENTLOADED
 // ===================================================
@@ -461,6 +576,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     actualizarContadorCarrito();
     renderizarCarrito();
+    actualizarEstadoSesionNavbar();
+
+    // Configurar autocompletado y sugerencias dinámicas de correo
+    configurarAutocompletadoCorreo('correoReg', 'sugerencias-correo-reg');
+    configurarAutocompletadoCorreo('correoLogin', 'sugerencias-correo-login');
+    configurarAutocompletadoCorreo('correo', 'sugerencias-correo-contacto');
 
     // Evento Vaciar Carrito
     const btnVaciar = document.getElementById('btn-vaciar-carrito');
@@ -498,84 +619,180 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Validación Login
+    // Validación Login con LocalStorage
     const formLogin = document.getElementById('formLogin');
     if (formLogin) {
         formLogin.addEventListener('submit', (e) => {
             e.preventDefault();
             let valido = true;
-            const correo = document.getElementById('correoLogin').value.trim();
+            const correoInput = document.getElementById('correoLogin');
+            const passInput = document.getElementById('passLogin');
             const errCorreo = document.getElementById('errorCorreoL');
-            const pass = document.getElementById('passLogin').value;
             const errPass = document.getElementById('errorPassL');
-            const regex = /^[a-zA-Z0-9._%+-]+@(duoc\.cl|profesor\.duoc\.cl|gmail\.com)$/;
 
-            if (!correo) { errCorreo.textContent = "Requerido."; valido = false; }
-            else if (correo.length > 100) { errCorreo.textContent = "Máx 100 caracteres."; valido = false; }
-            else if (!regex.test(correo)) { errCorreo.textContent = "Solo dominios @duoc.cl, @profesor.duoc.cl o @gmail.com."; valido = false; }
-            else { errCorreo.textContent = ""; }
+            const correo = correoInput ? correoInput.value.trim() : '';
+            const pass = passInput ? passInput.value : '';
+            const regex = /^[a-zA-Z0-9._%+-]+@(duoc\.cl|profesor\.duoc\.cl|gmail\.com)$/i;
 
-            if (!pass) { errPass.textContent = "Requerido."; valido = false; }
-            else if (pass.length < 4 || pass.length > 10) { errPass.textContent = "Entre 4 y 10 caracteres."; valido = false; }
-            else { errPass.textContent = ""; }
+            if (!correo) {
+                if (errCorreo) errCorreo.textContent = "El correo es obligatorio.";
+                valido = false;
+            } else if (!regex.test(correo)) {
+                if (errCorreo) errCorreo.textContent = "Solo dominios permitidos: @duoc.cl, @profesor.duoc.cl o @gmail.com.";
+                valido = false;
+            } else {
+                if (errCorreo) errCorreo.textContent = "";
+            }
 
-            if (valido) {
-                alert("¡Inicio de sesión exitoso!");
+            if (!pass) {
+                if (errPass) errPass.textContent = "La contraseña es obligatoria.";
+                valido = false;
+            } else if (pass.length < 4 || pass.length > 10) {
+                if (errPass) errPass.textContent = "Debe tener entre 4 y 10 caracteres.";
+                valido = false;
+            } else {
+                if (errPass) errPass.textContent = "";
+            }
+
+            if (!valido) return;
+
+            const usuarios = obtenerUsuarios();
+            const usuarioEncontrado = usuarios.find(u => 
+                u.correo.toLowerCase() === correo.toLowerCase() && u.pass === pass
+            );
+
+            if (usuarioEncontrado) {
+                guardarUsuarioActivo(usuarioEncontrado);
+                alert(`¡Bienvenido(a) a GamerZone, ${usuarioEncontrado.nombre}!`);
                 window.location.href = "index.html";
+            } else {
+                if (errCorreo) errCorreo.textContent = "Correo o contraseña no coinciden con ningún usuario registrado.";
+                if (errPass) errPass.textContent = "Verifica tu contraseña o crea una cuenta.";
             }
         });
     }
 
-    // Validación Registro
+    // Validación Registro con LocalStorage
     const formRegistro = document.getElementById('formRegistro');
     if (formRegistro) {
         formRegistro.addEventListener('submit', (e) => {
             e.preventDefault();
             let valido = true;
-            const rut = document.getElementById('rutReg').value.trim();
+
+            const rutInput = document.getElementById('rutReg');
             const errRut = document.getElementById('errorRut');
-            if (!rut) { errRut.textContent = "El RUT es obligatorio."; valido = false; }
-            else if (rut.length < 7 || rut.length > 9) { errRut.textContent = "Entre 7 y 9 caracteres sin puntos ni guión."; valido = false; }
-            else if (!validarRutChileno(rut)) { errRut.textContent = "RUT chileno no válido (ej: 19011022K)."; valido = false; }
-            else { errRut.textContent = ""; }
+            const rut = rutInput ? rutInput.value.trim() : '';
 
-            const nombre = document.getElementById('nombreReg').value.trim();
-            const errNombre = document.getElementById('errorNombreR');
-            if (!nombre) { errNombre.textContent = "El nombre es obligatorio."; valido = false; }
-            else if (nombre.length > 50) { errNombre.textContent = "Máximo 50 caracteres."; valido = false; }
-            else { errNombre.textContent = ""; }
-
-            const apellido = document.getElementById('apellidoReg').value.trim();
-            const errApellido = document.getElementById('errorApellidoR');
-            if (!apellido) { errApellido.textContent = "Los apellidos son obligatorios."; valido = false; }
-            else if (apellido.length > 100) { errApellido.textContent = "Máximo 100 caracteres."; valido = false; }
-            else { errApellido.textContent = ""; }
-
-            const correo = document.getElementById('correoReg').value.trim();
-            const errCorreo = document.getElementById('errorCorreoR');
-            const regex = /^[a-zA-Z0-9._%+-]+@(duoc\.cl|profesor\.duoc\.cl|gmail\.com)$/;
-            if (!correo) { errCorreo.textContent = "El correo es obligatorio."; valido = false; }
-            else if (correo.length > 100) { errCorreo.textContent = "Máximo 100 caracteres."; valido = false; }
-            else if (!regex.test(correo)) { errCorreo.textContent = "Solo dominios @duoc.cl, @profesor.duoc.cl o @gmail.com."; valido = false; }
-            else { errCorreo.textContent = ""; }
-
-            const pass = document.getElementById('passReg').value;
-            const errPass = document.getElementById('errorPassR');
-            if (!pass) { errPass.textContent = "La contraseña es obligatoria."; valido = false; }
-            else if (pass.length < 4 || pass.length > 10) { errPass.textContent = "Debe tener entre 4 y 10 caracteres."; valido = false; }
-            else { errPass.textContent = ""; }
-
-            const direccion = document.getElementById('direccionReg').value.trim();
-            const errDireccion = document.getElementById('errorDireccionR');
-            if (!direccion) { errDireccion.textContent = "La dirección es obligatoria."; valido = false; }
-            else if (direccion.length > 300) { errDireccion.textContent = "Máximo 300 caracteres."; valido = false; }
-            else { errDireccion.textContent = ""; }
-
-            if (valido) {
-                alert("¡Cuenta registrada con éxito en GamerZone!");
-                window.location.href = "login.html";
+            if (!rut) {
+                if (errRut) errRut.textContent = "El RUT es obligatorio.";
+                valido = false;
+            } else if (!validarRutChileno(rut)) {
+                if (errRut) errRut.textContent = "RUT inválido. Verifica el dígito verificador (Ej: 19011022-2 o 11111111-1).";
+                valido = false;
+            } else {
+                if (errRut) errRut.textContent = "";
             }
+
+            const nombreInput = document.getElementById('nombreReg');
+            const errNombre = document.getElementById('errorNombreR');
+            const nombre = nombreInput ? nombreInput.value.trim() : '';
+            if (!nombre) {
+                if (errNombre) errNombre.textContent = "El nombre es obligatorio.";
+                valido = false;
+            } else if (nombre.length > 50) {
+                if (errNombre) errNombre.textContent = "Máximo 50 caracteres.";
+                valido = false;
+            } else {
+                if (errNombre) errNombre.textContent = "";
+            }
+
+            const apellidoInput = document.getElementById('apellidoReg');
+            const errApellido = document.getElementById('errorApellidoR');
+            const apellido = apellidoInput ? apellidoInput.value.trim() : '';
+            if (!apellido) {
+                if (errApellido) errApellido.textContent = "Los apellidos son obligatorios.";
+                valido = false;
+            } else if (apellido.length > 100) {
+                if (errApellido) errApellido.textContent = "Máximo 100 caracteres.";
+                valido = false;
+            } else {
+                if (errApellido) errApellido.textContent = "";
+            }
+
+            const correoInput = document.getElementById('correoReg');
+            const errCorreo = document.getElementById('errorCorreoR');
+            const correo = correoInput ? correoInput.value.trim() : '';
+            const regexCorreo = /^[a-zA-Z0-9._%+-]+@(duoc\.cl|profesor\.duoc\.cl|gmail\.com)$/i;
+
+            if (!correo) {
+                if (errCorreo) errCorreo.textContent = "El correo es obligatorio.";
+                valido = false;
+            } else if (correo.length > 100) {
+                if (errCorreo) errCorreo.textContent = "Máximo 100 caracteres.";
+                valido = false;
+            } else if (!regexCorreo.test(correo)) {
+                if (errCorreo) errCorreo.textContent = "Solo dominios permitidos: @duoc.cl, @profesor.duoc.cl o @gmail.com.";
+                valido = false;
+            } else {
+                // Verificar si ya existe en LocalStorage
+                const usuarios = obtenerUsuarios();
+                if (usuarios.some(u => u.correo.toLowerCase() === correo.toLowerCase())) {
+                    if (errCorreo) errCorreo.textContent = "Este correo ya está registrado. Inicia sesión o usa otro.";
+                    valido = false;
+                } else {
+                    if (errCorreo) errCorreo.textContent = "";
+                }
+            }
+
+            const passInput = document.getElementById('passReg');
+            const errPass = document.getElementById('errorPassR');
+            const pass = passInput ? passInput.value : '';
+            if (!pass) {
+                if (errPass) errPass.textContent = "La contraseña es obligatoria.";
+                valido = false;
+            } else if (pass.length < 4 || pass.length > 10) {
+                if (errPass) errPass.textContent = "Debe tener entre 4 y 10 caracteres.";
+                valido = false;
+            } else {
+                if (errPass) errPass.textContent = "";
+            }
+
+            const direccionInput = document.getElementById('direccionReg');
+            const errDireccion = document.getElementById('errorDireccionR');
+            const direccion = direccionInput ? direccionInput.value.trim() : '';
+            if (!direccion) {
+                if (errDireccion) errDireccion.textContent = "La dirección es obligatoria.";
+                valido = false;
+            } else if (direccion.length > 300) {
+                if (errDireccion) errDireccion.textContent = "Máximo 300 caracteres.";
+                valido = false;
+            } else {
+                if (errDireccion) errDireccion.textContent = "";
+            }
+
+            if (!valido) return;
+
+            // Guardar usuario en LocalStorage
+            const usuarios = obtenerUsuarios();
+            const nuevoUsuario = {
+                rut,
+                nombre,
+                apellido,
+                correo,
+                pass,
+                region: selectRegion ? selectRegion.value : '',
+                comuna: selectComuna ? selectComuna.value : '',
+                direccion
+            };
+
+            usuarios.push(nuevoUsuario);
+            guardarUsuarios(usuarios);
+            guardarUsuarioActivo(nuevoUsuario);
+
+            alert(`¡Cuenta registrada con éxito en GamerZone!\nBienvenido(a), ${nombre}. Has iniciado sesión automáticamente.`);
+            window.location.href = "index.html";
         });
     }
 
 });
+

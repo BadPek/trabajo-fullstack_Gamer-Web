@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Guía de Presentación - Evaluación 1 - GamerZone</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Calibri, Arial, sans-serif;
+            line-height: 1.6;
+            color: #2b2b2b;
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 30px;
+            background: #ffffff;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            border-radius: 8px;
+        }
+        h1 { color: #5a189a; border-bottom: 3px solid #7b2cbf; padding-bottom: 10px; font-size: 26pt; }
+        h2 { color: #3c096c; border-bottom: 1.5px solid #e0aaff; padding-bottom: 6px; margin-top: 28px; font-size: 18pt; }
+        h3 { color: #7b2cbf; margin-top: 20px; font-size: 14pt; }
+        .badge { background: #5a189a; color: white; padding: 4px 10px; border-radius: 12px; font-size: 10pt; font-weight: bold; }
+        .card { background: #f8f7ff; border-left: 5px solid #5a189a; padding: 15px 20px; margin: 15px 0; border-radius: 4px; }
+        .quote { background: #fffdf5; border-left: 5px solid #ffb703; padding: 12px 18px; margin: 12px 0; font-style: italic; }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+        th, td { border: 1px solid #ddd; padding: 10px 14px; text-align: left; }
+        th { background: #5a189a; color: white; }
+        tr:nth-child(even) { background: #fdfcff; }
+        code { background: #e9ecef; color: #d63384; padding: 2px 6px; border-radius: 4px; font-family: Consolas, monospace; }
+        .btn-print { background: #5a189a; color: white; border: none; padding: 10px 20px; font-size: 11pt; font-weight: bold; border-radius: 6px; cursor: pointer; float: right; }
+        @media print { .btn-print { display: none; } body { box-shadow: none; padding: 0; margin: 0; } }
+    </style>
+</head>
+<body>
+    <button class="btn-print" onclick="window.print()">🖨️ Imprimir / Guardar en PDF</button>
+    <h1>🎮 GamerZone - Guía Oficial de Presentación</h1>
+    <p><strong>Asignatura:</strong> DSY1104 - Desarrollo Fullstack II (Duoc UC)<br>
+    <strong>Evaluación:</strong> Parcial N° 1 (30% de la Asignatura - Presentación Individual 60%, Encargo 40%)<br>
+    <strong>Repositorio GitHub:</strong> <code>https://github.com/BadPek/trabajo-fullstack_Gamer-Web</code></p>
+
+    <div class="card">
+        <h3>👥 Distribución Oficial del Equipo</h3>
+        <ul>
+            <li><strong>Kamen (BadPek):</strong> Líder del Proyecto | Autenticación (Login/Registro con RUT Módulo 11), LocalStorage, Carrito, Modal Promocional y Git Colaborativo.</li>
+            <li><strong>Daniel Rivas (dapanipiepel):</strong> Catálogo de Juegos, Ficha Técnica tipo Steam (Videos, Galería de Fotos y Requisitos Mínimos/Recomendados).</li>
+            <li><strong>Sara Tigreros (isatigreros):</strong> Páginas Institucionales (Nosotros, Noticias), Semántica HTML5, Formulario de Contacto con Validaciones JS y Footer.</li>
+        </ul>
+    </div>
+
+    <h2>⏱️ Estructura y Tiempos de la Presentación (10 a 12 min)</h2>
+    <table>
+        <tr>
+            <th>Orden</th>
+            <th>Expositor</th>
+            <th>Módulos y Temas</th>
+            <th>Tiempo</th>
+        </tr>
+        <tr>
+            <td>1°</td>
+            <td><strong>Sara Tigreros</strong></td>
+            <td>Introducción general, Semántica HTML5 (nosotros, noticias), Formulario de contacto (validación JS) y Footer informativo unificado.</td>
+            <td>3 a 4 min</td>
+        </tr>
+        <tr>
+            <td>2°</td>
+            <td><strong>Daniel Rivas</strong></td>
+            <td>Catálogo interactivo dinámico, Ficha de detalle estilo Steam, Reproductor de trailer (video local/embebido) y Requisitos de hardware.</td>
+            <td>3 a 4 min</td>
+        </tr>
+        <tr>
+            <td>3°</td>
+            <td><strong>Kamen</strong></td>
+            <td>Modal promocional (10% descuento), Registro y Login en LocalStorage, RUT Módulo 11, Carrito dinámico y Flujo Git en GitHub (ramas y PRs).</td>
+            <td>4 a 5 min</td>
+        </tr>
+    </table>
+
+    <hr>
+
+    <h2>👤 1. SARA TIGREROS - GUION DETALLADO</h2>
+    <div class="quote">
+        <strong>Foco en Rúbrica:</strong> IE1.1.3 (Semántica HTML5 actual) | IE1.1.4 (Hoja CSS externa y responsiva) | IE1.2.2 (Validaciones controladas por JS).
+    </div>
+    <h3>¿Qué abrir en pantalla?</h3>
+    <ul>
+        <li>En el navegador: <code>nosotros.html</code> y <code>contacto.html</code>.</li>
+        <li>En Visual Studio Code: <code>nosotros.html</code> y <code>js/contacto.js</code>.</li>
+    </ul>
+    <h3>¿Qué decir y demostrar?</h3>
+    <ol>
+        <li><strong>Semántica HTML5:</strong> Mostrar en el código cómo se estructuraron las etiquetas <code>&lt;header&gt;</code>, <code>&lt;nav&gt;</code>, <code>&lt;main&gt;</code>, <code>&lt;section&gt;</code>, <code>&lt;article&gt;</code> y <code>&lt;footer&gt;</code>, explicando que aportan accesibilidad y SEO.</li>
+        <li><strong>Hoja CSS Externa:</strong> Explicar que todos los estilos provienen de <code>css/style.css</code> usando la paleta unificada blanco y morado con variables CSS (<code>--purple-primary: #5a189a</code>).</li>
+        <li><strong>Demostración de Contacto:</strong>
+            <ul>
+                <li>Presionar "Enviar Mensaje" con campos vacíos: mostrar los mensajes de error en rojo.</li>
+                <li>Escribir correo no institucional: mostrar alerta de dominios autorizados.</li>
+                <li>Mostrar las sugerencias automáticas de correo al escribir en el campo.</li>
+                <li>Llenar y enviar: mostrar la confirmación en verde sin recargar la página gracias a <code>event.preventDefault()</code>.</li>
+            </ul>
+        </li>
+    </ol>
+
+    <hr>
+
+    <h2>👤 2. DANIEL RIVAS - GUION DETALLADO</h2>
+    <div class="quote">
+        <strong>Foco en Rúbrica:</strong> IE1.1.3 (Navegación e hipervínculos, imágenes y videos) | IE1.2.1 (Validaciones y manipulación del DOM) | IE1.1.4 (Diseño responsivo).
+    </div>
+    <h3>¿Qué abrir en pantalla?</h3>
+    <ul>
+        <li>En el navegador: <code>productos.html</code> y <code>detalle.html?id=6</code> (Baldur's Gate) o <code>id=1</code> (Elden Ring).</li>
+        <li>En Visual Studio Code: la función <code>obtenerJuegos()</code> en <code>js/app.js</code> y el visor de medios en <code>detalle.html</code>.</li>
+    </ul>
+    <h3>¿Qué decir y demostrar?</h3>
+    <ol>
+        <li><strong>Catálogo Dinámico:</strong> Explicar que los juegos no están "pegados en duro" en el HTML, sino que provienen de un arreglo en JavaScript con ID, precio, imagen local y categorías, inyectándose con <code>forEach</code> en el DOM.</li>
+        <li><strong>Ficha Estilo Steam:</strong>
+            <ul>
+                <li>Hacer clic en "Ver Detalle" de cualquier juego.</li>
+                <li>Hacer clic en el botón <strong>TRAILER</strong>: se reproduce el video (video local WebM para Baldur's Gate o trailer de Steam CDN).</li>
+                <li>Hacer clic en las miniaturas de capturas: el visor conmuta suavemente entre el video y las fotos.</li>
+            </ul>
+        </li>
+        <li><strong>Requisitos del Sistema:</strong> Mostrar las dos columnas de Mínimo y Recomendado (SO, Procesador, Memoria RAM, Gráficos, Almacenamiento SSD).</li>
+    </ol>
+
+    <hr>
+
+    <h2>👤 3. KAMEN - GUION DETALLADO (LÍDER)</h2>
+    <div class="quote">
+        <strong>Foco en Rúbrica:</strong> IE1.2.2 (RUT Módulo 11, autocompletado y validaciones) | IE1.2.1 (LocalStorage y Carrito) | IE1.3.2 (Git colaborativo, ramas y Pull Requests).
+    </div>
+    <h3>¿Qué abrir en pantalla?</h3>
+    <ul>
+        <li>En el navegador: <code>index.html</code> (mostrar modal promocional), <code>registro.html</code>, <code>login.html</code>, <code>carrito.html</code> y la consola DevTools (F12 -&gt; Application -&gt; LocalStorage).</li>
+        <li>En el navegador: El repositorio de GitHub: <code>https://github.com/BadPek/trabajo-fullstack_Gamer-Web</code>.</li>
+    </ul>
+    <h3>¿Qué decir y demostrar?</h3>
+    <ol>
+        <li><strong>Modal Promocional:</strong> Mostrar el modal que salta a los 800ms con el cupón <code>GAMER10</code>.</li>
+        <li><strong>Registro con RUT Módulo 11 y LocalStorage:</strong>
+            <ul>
+                <li>Probar un RUT inválido (mostrar mensaje de error).</li>
+                <li>Escribir un RUT válido (ej: <code>19011022-2</code> o <code>11111111-1</code>) y mostrar cómo el algoritmo Módulo 11 lo valida matemáticamente.</li>
+                <li>Mostrar la sugerencia dinámica de correo (al escribir el nombre, sugiere <code>@duoc.cl</code>, <code>@profesor.duoc.cl</code>, <code>@gmail.com</code>).</li>
+                <li>Mostrar cómo al seleccionar Región se habilitan las Comunas dependientes.</li>
+                <li>Pulsar "Crear mi Cuenta": mostrar que se guarda en <code>localStorage</code> (<code>gz_usuarios</code>) y se inicia sesión automáticamente, transformando el navbar con el nombre del usuario logueado.</li>
+            </ul>
+        </li>
+        <li><strong>Carrito de Compras Persistente:</strong>
+            <ul>
+                <li>Agregar juegos, modificar cantidad (+/-), aplicar el cupón <code>GAMER10</code> (10% descuento).</li>
+                <li>Recargar la página (F5) para demostrar que los datos siguen ahí gracias a <code>localStorage</code>.</li>
+            </ul>
+        </li>
+        <li><strong>Colaboración en GitHub (Rúbrica 20%):</strong>
+            <ul>
+                <li>Abrir GitHub y mostrar las ramas: <code>feature/contacto</code>, <code>feature/catalogo</code>, <code>feature/integracion-final</code>.</li>
+                <li>Mostrar los Pull Requests cerrados (#1, #2, #3) con commits semánticos (<code>feat:</code>, <code>fix:</code>, <code>chore:</code>).</li>
+                <li>Destacar que cada integrante trabajó en su propia rama y los cambios se fusionaron ordenadamente a <code>main</code>.</li>
+            </ul>
+        </li>
+    </ol>
+
+    <hr>
+
+    <h2>💡 PREGUNTAS FRECUENTES DEL DOCENTE (RESPUESTAS 7.0)</h2>
+    <div class="card">
+        <p><strong>P1: ¿Cómo funciona el Módulo 11 del RUT?</strong><br>
+        <em>R: Se multiplican los dígitos del cuerpo de derecha a izquierda por la serie 2, 3, 4, 5, 6, 7. Se suman los productos, se calcula <code>11 - (suma % 11)</code>. Si da 11 es '0', si da 10 es 'K', de lo contrario es el dígito correspondiente.</em></p>
+
+        <p><strong>P2: ¿Por qué usar LocalStorage y no variables normales de JS?</strong><br>
+        <em>R: Las variables en memoria se pierden al recargar la página o cambiar de pestaña. LocalStorage almacena hasta 5MB en el navegador del cliente de forma persistente, permitiendo que el carrito y la sesión permanezcan activos.</em></p>
+
+        <p><strong>P3: ¿Por qué separar el CSS en un archivo externo?</strong><br>
+        <em>R: Para respetar el principio de separación de responsabilidades, permitir que el navegador guarde el CSS en caché mejorando la velocidad de carga, y facilitar el mantenimiento global cambiando un estilo en un solo lugar.</em></p>
+
+        <p><strong>P4: ¿Por qué usamos ramas en Git y no subimos todo a main?</strong><br>
+        <em>R: Porque evita conflictos y sobreescrituras accidentales en equipos de trabajo. Permite que cada desarrollador trabaje de forma aislada y los cambios se auditen mediante Pull Requests antes de pasar a la rama principal.</em></p>
+    </div>
+</body>
+</html>
