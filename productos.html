@@ -83,7 +83,7 @@
                         <div class="card-body d-flex flex-column p-3">
                             <span class="badge bg-purple-light text-purple align-self-start mb-2 fw-semibold">${juego.categoria || 'Videojuegos'}</span>
                             <h5 class="card-title fw-bold text-dark">${juego.titulo}</h5>
-                            <p class="card-text text-secondary small flex-grow-1">${juego.descripcion}</p>
+                            <p class="card-text text-secondary small flex-grow-1">${juego.descripcion_corta || juego.descripcion || ''}</p>
                             <div class="d-flex justify-content-between align-items-center my-3">
                                 <span class="fs-5 fw-bold text-purple">$${juego.precio.toLocaleString('es-CL')}</span>
                                 <span class="badge bg-success-subtle text-success">Disponible</span>
