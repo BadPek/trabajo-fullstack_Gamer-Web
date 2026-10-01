@@ -68,6 +68,11 @@
                         <span class="text-secondary">Subtotal</span>
                         <span class="fw-semibold" id="carrito-subtotal">$0</span>
                     </div>
+                    <!-- Fila de Descuento con Cupón -->
+                    <div class="d-flex justify-content-between mb-2 d-none" id="fila-descuento">
+                        <span class="text-success fw-semibold"><i class="bi bi-tag-fill me-1"></i> Descuento (<span id="texto-cupon">10%</span>)</span>
+                        <span class="text-success fw-bold" id="carrito-descuento">-$0</span>
+                    </div>
                     <div class="d-flex justify-content-between mb-2">
                         <span class="text-secondary">Envío digital</span>
                         <span class="text-success fw-semibold">Gratis</span>
@@ -79,9 +84,12 @@
                     </div>
 
                     <!-- Cupón de descuento -->
-                    <div class="input-group mb-3">
-                        <input type="text" class="form-control" placeholder="Cupón de descuento" id="input-cupon">
-                        <button class="btn btn-outline-purple" type="button" onclick="aplicarCupon()">Aplicar</button>
+                    <div class="mb-3">
+                        <div class="input-group">
+                            <input type="text" class="form-control" placeholder="Cupón (Ej: GAMER10)" id="input-cupon">
+                            <button class="btn btn-purple fw-bold" type="button" onclick="aplicarCupon()">Aplicar</button>
+                        </div>
+                        <div id="mensaje-cupon"></div>
                     </div>
 
                     <button class="btn btn-purple btn-lg w-100 fw-bold shadow-sm" id="btn-pagar-ahora" onclick="procesarPago()">
@@ -132,12 +140,21 @@
         function aplicarCupon() {
             const input = document.getElementById('input-cupon').value.trim().toUpperCase();
             if (input === 'DUOC2026' || input === 'GAMER10') {
-                alert('¡Cupón aplicado con éxito! 10% de descuento concedido.');
+                guardarCuponActivo(input);
+                renderizarCarrito();
+                alert(`¡Cupón "${input}" aplicado con éxito! Se ha descontado un 10% del total.`);
             } else if (input === '') {
-                alert('Ingresa un código de cupón.');
+                alert('Por favor ingresa un código de cupón (Ej: GAMER10 o DUOC2026).');
             } else {
-                alert('Cupón no válido o expirado.');
+                alert('Cupón no válido o expirado. Prueba con GAMER10.');
             }
+        }
+
+        function quitarCupon() {
+            guardarCuponActivo('');
+            const input = document.getElementById('input-cupon');
+            if (input) input.value = '';
+            renderizarCarrito();
         }
 
         function procesarPago() {
@@ -146,8 +163,19 @@
                 alert('Tu carrito está vacío. Agrega juegos antes de pagar.');
                 return;
             }
-            alert('¡Compra simulada exitosa! Se ha generado tu comprobante de compra.');
+
+            const usuario = obtenerUsuarioActivo();
+            if (!usuario) {
+                if (confirm('Debes iniciar sesión para completar la compra de tus juegos.\n¿Deseas ir a Iniciar Sesión ahora?')) {
+                    window.location.href = 'login.html';
+                }
+                return;
+            }
+
+            const total = document.getElementById('carrito-total').textContent;
+            alert(`¡Compra exitosa, ${usuario.nombre}!\nTu pedido por ${total} ha sido procesado con éxito.\nSe ha enviado la confirmación y claves digitales a ${usuario.correo}.`);
             localStorage.removeItem('gz_carrito');
+            guardarCuponActivo('');
             actualizarContadorCarrito();
             renderizarCarrito();
         }

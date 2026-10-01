@@ -11,7 +11,7 @@ const obtenerJuegos = () => [
         categoria: 'Action RPG / Fantasía Oscura',
         imagen: 'src/img/elden_ring.jpg',
         descripcion_corta: 'Álzate, Sinluz, y déjate guiar por la gracia para esgrimir el poder del Círculo de Elden y convertirte en el Señor del Círculo en las Tierras Intermedias.',
-        video: 'https://cdn.akamai.steamstatic.com/steam/apps/256870020/movie480_vp9.webm',
+        video: 'src/videos/elden.webm',
         galeria: [
             'src/img/elden_ring.jpg',
             'https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=800&fit=crop',
@@ -364,12 +364,32 @@ function vaciarCarrito() {
     }
 }
 
+// Gestión de Cupones de Descuento
+function obtenerCuponActivo() {
+    return sessionStorage.getItem('gz_cupon') || '';
+}
+
+function guardarCuponActivo(codigo) {
+    if (codigo) sessionStorage.setItem('gz_cupon', codigo.toUpperCase());
+    else sessionStorage.removeItem('gz_cupon');
+}
+window.obtenerCuponActivo = obtenerCuponActivo;
+window.guardarCuponActivo = guardarCuponActivo;
+window.quitarCupon = function() {
+    guardarCuponActivo('');
+    renderizarCarrito();
+};
+
 // Renderizado dinámico de la página carrito.html
 function renderizarCarrito() {
     const contenedor = document.getElementById('lista-carrito');
     const subtotalEl = document.getElementById('carrito-subtotal');
     const totalEl = document.getElementById('carrito-total');
     const btnPagar = document.getElementById('btn-pagar-ahora');
+    const filaDescuento = document.getElementById('fila-descuento');
+    const descuentoEl = document.getElementById('carrito-descuento');
+    const inputCupon = document.getElementById('input-cupon');
+    const mensajeCupon = document.getElementById('mensaje-cupon');
 
     if (!contenedor) return;
 
@@ -389,6 +409,8 @@ function renderizarCarrito() {
         `;
         if (subtotalEl) subtotalEl.textContent = '$0';
         if (totalEl) totalEl.textContent = '$0';
+        if (filaDescuento) filaDescuento.classList.add('d-none');
+        if (mensajeCupon) mensajeCupon.innerHTML = '';
         if (btnPagar) btnPagar.disabled = true;
         return;
     }
@@ -429,7 +451,34 @@ function renderizarCarrito() {
     });
 
     if (subtotalEl) subtotalEl.textContent = `$${totalGeneral.toLocaleString('es-CL')}`;
-    if (totalEl) totalEl.textContent = `$${totalGeneral.toLocaleString('es-CL')}`;
+
+    // Calcular descuento si hay cupón activo
+    const cupon = obtenerCuponActivo();
+    let montoDescuento = 0;
+    if (cupon === 'GAMER10' || cupon === 'DUOC2026') {
+        montoDescuento = Math.round(totalGeneral * 0.10);
+        if (filaDescuento) {
+            filaDescuento.classList.remove('d-none');
+            const textoCupon = document.getElementById('texto-cupon');
+            if (textoCupon) textoCupon.textContent = `${cupon} (-10%)`;
+        }
+        if (descuentoEl) descuentoEl.textContent = `-$${montoDescuento.toLocaleString('es-CL')}`;
+        if (mensajeCupon) {
+            mensajeCupon.innerHTML = `
+                <div class="alert alert-success py-1 px-2 small mt-2 d-flex justify-content-between align-items-center mb-0">
+                    <span><i class="bi bi-tag-fill me-1"></i> Cupón <strong>${cupon}</strong> aplicado (-10% OFF)</span>
+                    <button type="button" class="btn-close btn-sm" onclick="quitarCupon()" title="Quitar cupón"></button>
+                </div>
+            `;
+        }
+        if (inputCupon) inputCupon.value = cupon;
+    } else {
+        if (filaDescuento) filaDescuento.classList.add('d-none');
+        if (mensajeCupon) mensajeCupon.innerHTML = '';
+    }
+
+    const totalFinal = Math.max(0, totalGeneral - montoDescuento);
+    if (totalEl) totalEl.textContent = `$${totalFinal.toLocaleString('es-CL')}`;
 }
 
 // Algoritmo Oficial de Validación de RUT Chileno (Módulo 11)
@@ -591,6 +640,20 @@ document.addEventListener('DOMContentLoaded', () => {
             vaciarCarrito();
         });
     }
+
+    // Delegación de eventos para botones "Agregar al Carrito" (.btn-agregar)
+    document.addEventListener('click', (e) => {
+        const btn = e.target.closest('.btn-agregar');
+        if (btn && !btn.hasAttribute('onclick')) {
+            const card = btn.closest('[data-id]');
+            if (card) {
+                const id = parseInt(card.getAttribute('data-id'), 10);
+                if (id) {
+                    agregarAlCarrito(id);
+                }
+            }
+        }
+    });
 
     // Región y Comuna dependientes (Registro)
     const selectRegion = document.getElementById('selectRegion');
