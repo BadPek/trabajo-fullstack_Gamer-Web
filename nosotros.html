@@ -1,338 +1,120 @@
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
     <title>Nosotros - GamerZone</title>
-    
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="css/style.css">
 </head>
+<body class="bg-white text-dark">
 
-<body class="bg-dark text-light">
-
-   
-    <nav class="navbar navbar-expand-lg navbar-dark bg-black sticky-top">
+    <!-- NAVBAR UNIFICADO MORADO -->
+    <nav class="navbar navbar-expand-lg navbar-dark navbar-purple sticky-top" style="background: linear-gradient(135deg, #3c096c 0%, #5a189a 100%) !important;">
         <div class="container">
-
-            <a class="navbar-brand text-warning fw-bold" href="index.html">
-                <i class="bi bi-controller"></i> GamerZone
+            <a class="navbar-brand fw-bold fs-4 d-flex align-items-center" href="index.html">
+                <i class="bi bi-controller me-2 fs-3 text-warning"></i> GamerZone
             </a>
-
-            <button class="navbar-toggler" type="button"
-                data-bs-toggle="collapse"
-                data-bs-target="#navbarNav">
-
+            <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
-
             <div class="collapse navbar-collapse" id="navbarNav">
-
-                <ul class="navbar-nav me-auto">
-
-                    <li class="nav-item">
-                        <a class="nav-link" href="index.html">Inicio</a>
-                    </li>
-
-                    <li class="nav-item">
-                        <a class="nav-link" href="productos.html">Juegos</a>
-                    </li>
-
-                    <li class="nav-item">
-                        <a class="nav-link active" href="nosotros.html">Nosotros</a>
-                    </li>
-
-                    <li class="nav-item">
-                        <a class="nav-link" href="blog.html">Noticias</a>
-                    </li>
-
-                    <li class="nav-item">
-                        <a class="nav-link" href="contacto.html">Contacto</a>
-                    </li>
-
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item"><a class="nav-link" href="index.html"><i class="bi bi-house-door me-1"></i> Inicio</a></li>
+                    <li class="nav-item"><a class="nav-link" href="productos.html"><i class="bi bi-grid me-1"></i> Juegos</a></li>
+                    <li class="nav-item"><a class="nav-link active" href="nosotros.html"><i class="bi bi-people me-1"></i> Nosotros</a></li>
+                    <li class="nav-item"><a class="nav-link" href="blog.html"><i class="bi bi-newspaper me-1"></i> Noticias</a></li>
+                    <li class="nav-item"><a class="nav-link" href="contacto.html"><i class="bi bi-envelope me-1"></i> Contacto</a></li>
                 </ul>
-
-                <button class="btn btn-outline-warning d-flex align-items-center" type="button">
-                    <i class="bi bi-cart-fill me-2"></i>
-                    Carrito
-                </button>
-
+                <div class="d-flex gap-2 align-items-center flex-wrap">
+                    <a href="login.html" class="btn btn-outline-light btn-sm px-3">Iniciar Sesión</a>
+                    <a href="registro.html" class="btn btn-light btn-sm text-purple fw-bold px-3">Registrarse</a>
+                    <a href="carrito.html" class="btn btn-warning btn-sm d-flex align-items-center ms-lg-2 fw-bold" id="btn-carrito">
+                        <i class="bi bi-cart3 me-1"></i> Carrito
+                        <span class="badge bg-dark ms-2" id="contador-carrito">0</span>
+                    </a>
+                </div>
             </div>
         </div>
     </nav>
 
-
-    <!-- el contenido principal -->
-    <main class="container py-5">
-
-        <!-- presentasao -->
-        <section class="text-center mb-5">
-
-            <h1 class="text-warning fw-bold mb-3">
-                <i class="bi bi-controller"></i>
-                Sobre GamerZone
+    <!-- HEADER NOSOTROS (Sara + Diseño Morado) -->
+    <section class="bg-purple-light py-5 border-bottom text-center">
+        <div class="container">
+            <h1 class="text-purple fw-bold display-5 mb-2">
+                <i class="bi bi-controller text-warning me-2"></i> Sobre GamerZone
             </h1>
-
-            <p class="text-secondary fs-5 mx-auto" style="max-width: 750px;">
-                Somos una tienda dedicada a los amantes de los videojuegos.
-                En GamerZone buscamos ofrecer juegos, accesorios y productos
-                de colección para todo tipo de jugadores.
+            <p class="lead text-secondary max-w-600 mx-auto">
+                Somos una tienda dedicada a los amantes de los videojuegos. En GamerZone buscamos ofrecer juegos, accesorios y productos de colección para todo tipo de jugadores.
             </p>
+        </div>
+    </section>
 
-        </section>
-
-
-        <!-- quienes somos???... -->
-        <section class="row align-items-center mb-5">
-
-            <div class="col-lg-6 mb-4 mb-lg-0">
-
-                <h2 class="text-warning">
-                    ¿Quiénes somos?
-                </h2>
-
-                <p>
-                    GamerZone nace como un espacio pensado para reunir
-                    diferentes productos relacionados con el mundo gamer
-                    en un solo lugar.
+    <!-- CONTENIDO PRINCIPAL DE SARA -->
+    <main class="container my-5 flex-grow-1">
+        <!-- Quiénes somos -->
+        <section class="row align-items-center mb-5 g-5">
+            <div class="col-lg-6">
+                <span class="badge bg-purple-light text-purple px-3 py-2 mb-2 fw-semibold">Nuestra Historia</span>
+                <h2 class="text-purple fw-bold mb-3">¿Quiénes somos?</h2>
+                <p class="text-secondary leading-relaxed">
+                    GamerZone nace como un espacio pensado para reunir diferentes productos relacionados con el mundo gamer en un solo lugar.
                 </p>
-
-                <p class="text-secondary">
-                    Nuestro objetivo es entregar una experiencia sencilla
-                    y cómoda, permitiendo encontrar videojuegos,
-                    accesorios y artículos de colección de manera rápida.
+                <p class="text-secondary leading-relaxed">
+                    Nuestro objetivo es entregar una experiencia sencilla y cómoda, permitiendo encontrar videojuegos, accesorios y artículos de colección de manera rápida.
                 </p>
-
-                <a href="productos.html" class="btn btn-warning fw-bold">
-                    <i class="bi bi-bag-fill"></i>
-                    Ver productos
+                <a href="productos.html" class="btn btn-purple fw-bold mt-2">
+                    <i class="bi bi-bag-fill me-1"></i> Ver Productos
                 </a>
-
             </div>
-
 
             <div class="col-lg-6 text-center">
-
-                <div class="bg-secondary rounded p-5 shadow">
-
-                    <i class="bi bi-controller text-warning"
-                       style="font-size: 8rem;"></i>
-
-                    <h3 class="mt-3 fw-bold">
-                        Tu mundo gamer
-                    </h3>
-
-                    <p class="text-light mb-0">
-                        Juegos, accesorios y mucho más.
-                    </p>
-
+                <div class="bg-purple-light border border-purple rounded-4 p-5 shadow-sm">
+                    <i class="bi bi-joystick text-purple" style="font-size: 6rem;"></i>
+                    <h3 class="mt-3 fw-bold text-purple">Tu Mundo Gamer</h3>
+                    <p class="text-secondary mb-0">Juegos, accesorios, figuras y mucho más.</p>
                 </div>
-
             </div>
-
         </section>
 
-
-        <!-- aca caracteristicas!! -->
+        <!-- Qué buscamos ofrecer (Tarjetas de Sara) -->
         <section class="mt-5">
-
-            <h2 class="text-center text-warning mb-4">
-                ¿Qué buscamos ofrecer?
-            </h2>
-
-            <div class="row g-4">
-
-                <!-- tarjetaaaa 1 -->
+            <h2 class="text-center text-purple fw-bold mb-4">¿Qué buscamos ofrecer?</h2>
+            <div class="row g-4 text-center">
                 <div class="col-12 col-md-4">
-
-                    <div class="card h-100 bg-secondary text-light border-0 text-center card-gamer">
-
-                        <div class="card-body p-4">
-
-                            <i class="bi bi-joystick text-warning"
-                               style="font-size: 3rem;"></i>
-
-                            <h4 class="mt-3">
-                                Variedad
-                            </h4>
-
-                            <p class="mb-0">
-                                Diferentes videojuegos, accesorios
-                                y productos para jugadores.
-                            </p>
-
-                        </div>
-
+                    <div class="card h-100 card-gamer p-4 border-0 shadow-sm">
+                        <i class="bi bi-controller text-purple" style="font-size: 3rem;"></i>
+                        <h4 class="mt-3 text-purple fw-bold">Variedad</h4>
+                        <p class="text-secondary mb-0">Diferentes videojuegos, accesorios y productos para todo tipo de jugadores.</p>
                     </div>
-
                 </div>
-
-
-                <!-- tarjeta 2 -->
                 <div class="col-12 col-md-4">
-
-                    <div class="card h-100 bg-secondary text-light border-0 text-center card-gamer">
-
-                        <div class="card-body p-4">
-
-                            <i class="bi bi-shield-check text-warning"
-                               style="font-size: 3rem;"></i>
-
-                            <h4 class="mt-3">
-                                Confianza
-                            </h4>
-
-                            <p class="mb-0">
-                                Buscamos entregar una experiencia
-                                de compra clara y segura.
-                            </p>
-
-                        </div>
-
+                    <div class="card h-100 card-gamer p-4 border-0 shadow-sm">
+                        <i class="bi bi-lightning-charge text-purple" style="font-size: 3rem;"></i>
+                        <h4 class="mt-3 text-purple fw-bold">Rapidez</h4>
+                        <p class="text-secondary mb-0">Procesos simples e intuitivos para que encuentres lo que buscas sin complicaciones.</p>
                     </div>
-
                 </div>
-
-
-                <!-- la tarjeta 3 -->
                 <div class="col-12 col-md-4">
-
-                    <div class="card h-100 bg-secondary text-light border-0 text-center card-gamer">
-
-                        <div class="card-body p-4">
-
-                            <i class="bi bi-people-fill text-warning"
-                               style="font-size: 3rem;"></i>
-
-                            <h4 class="mt-3">
-                                Comunidad
-                            </h4>
-
-                            <p class="mb-0">
-                                Un espacio pensado para quienes
-                                disfrutan del mundo de los videojuegos.
-                            </p>
-
-                        </div>
-
+                    <div class="card h-100 card-gamer p-4 border-0 shadow-sm">
+                        <i class="bi bi-shield-check text-purple" style="font-size: 3rem;"></i>
+                        <h4 class="mt-3 text-purple fw-bold">Confianza</h4>
+                        <p class="text-secondary mb-0">Atención personalizada y artículos garantizados para tu tranquilidad.</p>
                     </div>
-
                 </div>
-
             </div>
-
         </section>
-
     </main>
 
-
-  
-    <footer class="bg-black text-light py-5 border-top border-warning">
-
-        <div class="container">
-
-            <div class="row g-4">
-
-                <div class="col-md-4">
-
-                    <h5 class="text-warning">
-                        <i class="bi bi-controller"></i>
-                        GamerZone
-                    </h5>
-
-                    <p class="text-secondary">
-                        Tu destino definitivo para videojuegos,
-                        figuras de colección y accesorios.
-                    </p>
-
-                </div>
-
-
-                <div class="col-md-4">
-
-                    <h5 class="text-warning">
-                        Enlaces Rápidos
-                    </h5>
-
-                    <ul class="list-unstyled">
-
-                        <li>
-                            <a href="nosotros.html"
-                               class="text-secondary text-decoration-none hover-warning">
-                                Nosotros
-                            </a>
-                        </li>
-
-                        <li>
-                            <a href="blog.html"
-                               class="text-secondary text-decoration-none hover-warning">
-                                Noticias
-                            </a>
-                        </li>
-
-                        <li>
-                            <a href="contacto.html"
-                               class="text-secondary text-decoration-none hover-warning">
-                                Contacto
-                            </a>
-                        </li>
-
-                    </ul>
-
-                </div>
-
-
-                <div class="col-md-4">
-
-                    <h5 class="text-warning">
-                        Síguenos
-                    </h5>
-
-                    <div class="d-flex gap-3">
-
-                        <a href="#" class="text-light fs-4 hover-warning">
-                            <i class="bi bi-facebook"></i>
-                        </a>
-
-                        <a href="#" class="text-light fs-4 hover-warning">
-                            <i class="bi bi-instagram"></i>
-                        </a>
-
-                        <a href="#" class="text-light fs-4 hover-warning">
-                            <i class="bi bi-twitter-x"></i>
-                        </a>
-
-                        <a href="#" class="text-light fs-4 hover-warning">
-                            <i class="bi bi-discord"></i>
-                        </a>
-
-                    </div>
-
-                </div>
-
-            </div>
-
-
-            <div class="text-center mt-4 pt-3 border-top border-secondary">
-
-                <p class="mb-0 text-secondary">
-                    &copy; 2026 GamerZone. Proyecto de Fullstack.
-                    Todos los derechos reservados.
-                </p>
-
-            </div>
-
+    <!-- FOOTER -->
+    <footer class="py-5 mt-auto">
+        <div class="container text-center">
+            <p class="mb-0 text-muted">&copy; 2026 GamerZone Store - Duoc UC. Todos los derechos reservados.</p>
         </div>
-
     </footer>
 
-
-    
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-
+    <script src="js/app.js"></script>
 </body>
-
 </html>

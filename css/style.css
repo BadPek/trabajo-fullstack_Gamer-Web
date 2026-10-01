@@ -1,32 +1,203 @@
-/* Estilos personalizados menores para darle una estética 'gamer' (además de usar Bootstrap) */
+/* ===================================================
+   PALETA BLANCO Y MORADO - GAMERZONE
+   =================================================== */
 
-/* Efecto hover suave en las tarjetas (Cards) */
+:root {
+    --purple-dark: #3c096c;
+    --purple-primary: #5a189a;
+    --purple-light: #7b2cbf;
+    --purple-soft: #9d4edd;
+    --purple-bg: #f8f4fc;
+    --purple-border: #e0ccf7;
+    --white: #ffffff;
+}
+
+body {
+    background-color: #ffffff !important;
+    color: #212529;
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* NAVBAR MORADO PROFUNDO Y VIBRANTE */
+.navbar-purple {
+    background: #5a189a !important;
+    background: linear-gradient(135deg, #3c096c 0%, #5a189a 100%) !important;
+    box-shadow: 0 4px 15px rgba(90, 24, 154, 0.3) !important;
+}
+
+.navbar-purple .navbar-brand {
+    color: #ffffff !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.5px;
+}
+
+.navbar-purple .nav-link {
+    color: #ffffff !important;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    padding: 0.5rem 0.9rem !important;
+    border-radius: 6px;
+}
+
+.navbar-purple .nav-link:hover,
+.navbar-purple .nav-link.active {
+    color: #ffd166 !important;
+    background-color: rgba(255, 255, 255, 0.15);
+}
+
+/* BOTONES MORADOS */
+.btn-purple {
+    background-color: var(--purple-primary) !important;
+    border-color: var(--purple-primary) !important;
+    color: #ffffff !important;
+    font-weight: 600;
+    transition: all 0.25s ease;
+}
+
+.btn-purple:hover {
+    background-color: var(--purple-dark) !important;
+    border-color: var(--purple-dark) !important;
+    color: #ffffff !important;
+    box-shadow: 0 4px 12px rgba(90, 24, 154, 0.35);
+    transform: translateY(-2px);
+}
+
+.btn-outline-purple {
+    color: var(--purple-primary) !important;
+    border: 2px solid var(--purple-primary) !important;
+    background: transparent;
+    font-weight: 600;
+    transition: all 0.25s ease;
+}
+
+.btn-outline-purple:hover {
+    background-color: var(--purple-primary) !important;
+    color: #ffffff !important;
+    box-shadow: 0 4px 12px rgba(90, 24, 154, 0.25);
+    transform: translateY(-2px);
+}
+
+/* CLASES DE TEXTO Y FONDOS MORADOS */
+.text-purple {
+    color: var(--purple-primary) !important;
+}
+
+.bg-purple {
+    background-color: var(--purple-primary) !important;
+    color: #ffffff !important;
+}
+
+.bg-purple-light {
+    background-color: var(--purple-bg) !important;
+}
+
+.border-purple {
+    border-color: var(--purple-primary) !important;
+}
+
+/* CARRUSEL ARREGLADO */
+#ofertasCarousel {
+    position: relative;
+    overflow: hidden;
+    border-radius: 14px;
+}
+
+.carousel-item {
+    height: 420px;
+    background-color: #1a0826;
+}
+
+.img-carousel {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0.9;
+}
+
+.carousel-caption-custom {
+    position: absolute;
+    right: 10%;
+    bottom: 45px;
+    left: 10%;
+    padding: 1.25rem 2rem;
+    color: #ffffff;
+    text-align: center;
+    background: rgba(60, 9, 108, 0.88);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    border-radius: 12px;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+}
+
+.carousel-indicators {
+    bottom: 12px !important;
+    margin-bottom: 0 !important;
+}
+
+.carousel-indicators [data-bs-target] {
+    width: 35px;
+    height: 6px;
+    border-radius: 3px;
+    background-color: var(--purple-soft);
+    opacity: 0.6;
+    border: none;
+    transition: all 0.3s ease;
+}
+
+.carousel-indicators .active {
+    background-color: #ffffff !important;
+    opacity: 1;
+    width: 48px;
+}
+
+/* TARJETAS DE PRODUCTOS (CARDS) */
 .card-gamer {
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    background: #ffffff;
+    border: 1.5px solid #ede4f7;
+    border-radius: 12px;
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
 }
 
 .card-gamer:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 10px 20px rgba(255, 193, 7, 0.3) !important; /* Brillo amarillo/naranja de bootstrap (warning) */
+    transform: translateY(-8px);
+    border-color: var(--purple-light);
+    box-shadow: 0 12px 25px rgba(90, 24, 154, 0.2) !important;
 }
 
-/* Controlar altura del carrusel */
-.img-carousel {
+.card-gamer .card-img-top {
+    height: 230px;
     object-fit: cover;
-    max-height: 450px;
+    border-top-left-radius: 11px;
+    border-top-right-radius: 11px;
 }
 
-/* Asegurar que las imágenes de las tarjetas tengan todas el mismo tamaño y no se deformen */
-.card-img-top {
-    height: 250px;
-    object-fit: cover;
+/* FOOTER */
+footer {
+    background-color: var(--purple-bg);
+    border-top: 3px solid var(--purple-primary);
+    color: #495057;
 }
 
-/* Color en Hover para enlaces del Footer y redes sociales */
-.hover-warning {
-    transition: color 0.3s ease;
+footer a {
+    color: #495057;
+    text-decoration: none;
+    transition: color 0.2s ease;
 }
 
-.hover-warning:hover {
-    color: #ffc107 !important;
+footer a:hover {
+    color: var(--purple-primary);
+}
+
+.hover-purple {
+    color: #5a189a !important;
+    transition: all 0.2s ease;
+}
+
+.hover-purple:hover {
+    color: #3c096c !important;
+    transform: scale(1.1);
 }
