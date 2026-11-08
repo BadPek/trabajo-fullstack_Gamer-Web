@@ -29,7 +29,7 @@ export const DetailPage = ({ onAddToCart }) => {
   }
 
   const gallery = juego.galeria?.length ? juego.galeria : [juego.imagen];
-  const trailer = juego.video === 'src/videos/elden.webm' ? null : juego.video;
+  const trailer = juego.video;
   const mediaItems = [
     ...(trailer ? [{ type: 'video', src: trailer, label: 'Tráiler' }] : []),
     ...gallery.map((src, index) => ({ type: 'image', src, label: `Captura ${index + 1}` })),

@@ -1,6 +1,7 @@
 import { act, renderHook } from '@testing-library/react';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { useCart } from './useCart';
+import { dismissStorageWarning } from '@/utils/sessionStorageUtils';
 
 
 //npm test --run src\pages\useCart.test.jsx
@@ -15,6 +16,7 @@ const product = {
 
 beforeEach(() => {
   sessionStorage.clear();
+  dismissStorageWarning();
 });
 
 describe('useCart', () => {
@@ -132,6 +134,7 @@ describe('useCart', () => {
       first.result.current.addToCart(product, 2);
       first.result.current.applyCoupon('GAMER10');
     });
+    expect(sessionStorage.getItem('gz_cupon')).toBe('GAMER10');
     first.unmount();
 
     const second = renderHook(() => useCart());
@@ -142,5 +145,17 @@ describe('useCart', () => {
       categoria: expect.any(String),
     });
     expect(second.result.current.coupon).toBe('GAMER10');
+  });
+
+  it('restablece datos dañados del carrito y descarta cupones desconocidos', () => {
+    sessionStorage.setItem('gz_carrito', '{');
+    sessionStorage.setItem('gz_cupon', 'CUPON_INVALIDO');
+
+    const { result } = renderHook(() => useCart());
+
+    expect(result.current.cartItems).toEqual([]);
+    expect(result.current.coupon).toBe('');
+    expect(sessionStorage.getItem('gz_carrito')).toBe('[]');
+    expect(sessionStorage.getItem('gz_cupon')).toBeNull();
   });
 });

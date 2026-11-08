@@ -1,19 +1,33 @@
 import { useEffect, useState } from 'react';
 import { isValidCoupon } from '@/utils/cartUtils';
 import { juegosData } from '@/data/juegosData';
+import {
+  readSessionJson,
+  readValidatedSessionValue,
+  removeSessionValue,
+  writeSessionValue,
+} from '@/utils/sessionStorageUtils';
 
 const CART_KEY = 'gz_carrito';
 const COUPON_KEY = 'gz_cupon';
 
+const isStoredCart = (cart) =>
+  Array.isArray(cart) && cart.every((item) =>
+    item
+    && typeof item.id === 'number'
+    && typeof item.titulo === 'string'
+    && typeof item.precio === 'number'
+    && Number.isFinite(item.precio)
+    && Number.isInteger(item.cantidad)
+    && item.cantidad > 0
+  );
+
 const readStoredCart = () => {
-  const storedCart = sessionStorage.getItem(CART_KEY);
-  if (storedCart === null) return [];
-
-  const cart = JSON.parse(storedCart);
-  if (!Array.isArray(cart)) {
-    throw new Error('El carrito guardado en esta sesión tiene un formato inválido.');
-  }
-
+  const cart = readSessionJson(CART_KEY, {
+    fallback: [],
+    isValid: isStoredCart,
+    label: 'el carrito',
+  });
   return cart.map((item) => ({
     ...item,
     categoria: item.categoria || juegosData.find((game) => game.id === item.id)?.categoria || 'Videojuego',
@@ -22,15 +36,19 @@ const readStoredCart = () => {
 
 export const useCart = () => {
   const [cartItems, setCartItems] = useState(readStoredCart);
-  const [coupon, setCoupon] = useState(() => sessionStorage.getItem(COUPON_KEY) || '');
+  const [coupon, setCoupon] = useState(() => readValidatedSessionValue(COUPON_KEY, {
+    fallback: '',
+    isValid: isValidCoupon,
+    label: 'el cupón',
+  }));
 
   useEffect(() => {
-    sessionStorage.setItem(CART_KEY, JSON.stringify(cartItems));
+    writeSessionValue(CART_KEY, JSON.stringify(cartItems));
   }, [cartItems]);
 
   useEffect(() => {
-    if (coupon) sessionStorage.setItem(COUPON_KEY, coupon);
-    else sessionStorage.removeItem(COUPON_KEY);
+    if (coupon) writeSessionValue(COUPON_KEY, coupon);
+    else removeSessionValue(COUPON_KEY);
   }, [coupon]);
 
   const addToCart = (product, quantity = 1) => {

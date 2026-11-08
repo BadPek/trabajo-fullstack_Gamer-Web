@@ -23,6 +23,8 @@ describe('RegisterPage', () => {
     expect(screen.getByText('El RUT es obligatorio.')).toBeInTheDocument();
     expect(screen.getByText('El nombre es obligatorio.')).toBeInTheDocument();
     expect(screen.getByText('El correo es obligatorio.')).toBeInTheDocument();
+    expect(screen.getByText('La región es obligatoria.')).toBeInTheDocument();
+    expect(screen.getByText('La comuna es obligatoria.')).toBeInTheDocument();
   });
 
   it('registra correctamente con datos válidos y anuncia el resultado', async () => {
@@ -40,15 +42,19 @@ describe('RegisterPage', () => {
     await user.type(screen.getByLabelText('Correo electrónico *'), 'ana@gmail.com');
     await user.type(screen.getByLabelText('Contraseña *'), 'clave123');
     await user.type(screen.getByLabelText('Dirección de despacho *'), 'Calle 123');
+    await user.selectOptions(screen.getByLabelText('Región *'), 'metropolitana');
+    await user.selectOptions(screen.getByLabelText('Comuna *'), 'Santiago Centro');
     await user.click(screen.getByRole('button', { name: /Crear mi cuenta/i }));
 
     expect(onRegister).toHaveBeenCalledWith(
       expect.objectContaining({
-        rut: '19.011.022-2',
+        rut: '190110222',
         nombre: 'Ana',
         //cambiar correo esperado por uno distinto al ingresado, cualquiera
         correo: 'ana@gmail.com',
         direccion: 'Calle 123',
+        region: 'metropolitana',
+        comuna: 'Santiago Centro',
       })
     );
     expect(screen.getByRole('status')).toHaveTextContent('¡Cuenta creada con éxito!');

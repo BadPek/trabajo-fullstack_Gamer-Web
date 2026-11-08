@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { calculateSubtotal, applyCouponDiscount } from './cartUtils';
+import { calculateSubtotal, calculateIncludedVat, applyCouponDiscount } from './cartUtils';
 
 describe('cartUtils', () => {
   const mockItems = [
@@ -9,6 +9,10 @@ describe('cartUtils', () => {
 
   it('calculateSubtotal debe calcular correctamente la suma de los productos con sus cantidades', () => {
     expect(calculateSubtotal(mockItems)).toBe(159970);
+  });
+
+  it('calcula el IVA incluido sobre el total bruto', () => {
+    expect(calculateIncludedVat(1190)).toBe(190);
   });
 
   it('applyCouponDiscount debe aplicar un 10% de descuento cuando el cupón es GAMER10', () => {
@@ -22,5 +26,4 @@ describe('cartUtils', () => {
     expect(discountAmount).toBe(0);
     expect(finalTotal).toBe(100000);
   });
-
 });

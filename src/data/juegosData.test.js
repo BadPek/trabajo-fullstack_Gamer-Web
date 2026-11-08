@@ -1,4 +1,4 @@
-import { existsSync } from 'node:fs';
+import { existsSync, statSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { juegosData } from './juegosData';
@@ -39,11 +39,20 @@ describe('juegosData', () => {
     });
   });
 
-  it('mantiene el video local de Elden Ring como recurso pendiente no reproducible', () => {
+  it('mantiene cada imagen local bajo el máximo de 200 KB de la ERS', () => {
+    const localImagePaths = juegosData.flatMap((game) => [
+      game.imagen,
+      ...(game.galeria || []),
+    ]).filter((resource) => !/^https?:\/\//i.test(resource));
+
+    localImagePaths.forEach((resource) => {
+      expect(statSync(resolve(publicDirectory, resource)).size).toBeLessThanOrEqual(200 * 1024);
+    });
+  });
+
+  it('no declara un tráiler para Elden Ring cuando no existe el recurso local', () => {
     const eldenRing = juegosData.find((game) => game.titulo === 'Elden Ring');
 
-    expect(eldenRing.video).toBe('src/videos/elden.webm');
-    // cambiar true por false
-    expect(existsSync(resolve(publicDirectory, eldenRing.video))).toBe(false);
+    expect(eldenRing.video).toBeNull();
   });
 });

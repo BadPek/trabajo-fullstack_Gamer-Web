@@ -1,3 +1,9 @@
+import {
+  readSessionJson,
+  removeSessionValue,
+  writeSessionValue,
+} from '@/utils/sessionStorageUtils';
+
 const USERS_KEY = 'gz_usuarios';
 const ACTIVE_USER_KEY = 'gz_usuario_activo';
 
@@ -12,32 +18,39 @@ const demoUser = {
   direccion: 'Av. España 8',
 };
 
+const isStoredUser = (user) =>
+  user
+  && typeof user === 'object'
+  && typeof user.nombre === 'string'
+  && typeof user.correo === 'string'
+  && typeof user.pass === 'string';
+
+const isStoredUsers = (users) => Array.isArray(users) && users.every(isStoredUser);
+
 export const getUsers = () => {
-  const storedUsers = sessionStorage.getItem(USERS_KEY);
-  if (storedUsers === null) {
-    sessionStorage.setItem(USERS_KEY, JSON.stringify([demoUser]));
-    return [demoUser];
-  }
-
-  const users = JSON.parse(storedUsers);
-  if (!Array.isArray(users)) {
-    throw new Error('Los usuarios guardados en esta sesión tienen un formato inválido.');
-  }
-
-  return users;
+  return readSessionJson(USERS_KEY, {
+    fallback: [demoUser],
+    isValid: isStoredUsers,
+    label: 'los usuarios',
+    onMissing: (users) => writeSessionValue(USERS_KEY, JSON.stringify(users)),
+    onInvalid: (users) => writeSessionValue(USERS_KEY, JSON.stringify(users)),
+  });
 };
 
 export const getActiveUser = () => {
-  const storedUser = sessionStorage.getItem(ACTIVE_USER_KEY);
-  return storedUser ? JSON.parse(storedUser) : null;
+  return readSessionJson(ACTIVE_USER_KEY, {
+    fallback: null,
+    isValid: isStoredUser,
+    label: 'la sesión de usuario',
+  });
 };
 
 export const setActiveUser = (user) => {
-  sessionStorage.setItem(ACTIVE_USER_KEY, JSON.stringify(user));
+  writeSessionValue(ACTIVE_USER_KEY, JSON.stringify(user));
 };
 
 export const clearActiveUser = () => {
-  sessionStorage.removeItem(ACTIVE_USER_KEY);
+  removeSessionValue(ACTIVE_USER_KEY);
 };
 
 export const registerUser = (user) => {
@@ -49,7 +62,7 @@ export const registerUser = (user) => {
   if (emailExists) return { error: 'Este correo ya está registrado. Inicia sesión o usa otro.' };
 
   const updatedUsers = [...users, user];
-  sessionStorage.setItem(USERS_KEY, JSON.stringify(updatedUsers));
+  writeSessionValue(USERS_KEY, JSON.stringify(updatedUsers));
   setActiveUser(user);
   return { user };
 };

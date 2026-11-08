@@ -39,7 +39,6 @@ describe('ContactPage', () => {
 
   it('confirma el envío válido y limpia los campos', async () => {
     const user = userEvent.setup();
-    const alert = vi.spyOn(window, 'alert').mockImplementation(() => {});
     render(<ContactPage />);
 
     await user.type(screen.getByLabelText('Nombre completo *'), 'Ana Gamer');
@@ -48,9 +47,8 @@ describe('ContactPage', () => {
     await user.type(screen.getByLabelText('Mensaje *'), 'Necesito ayuda');
     await user.click(screen.getByRole('button', { name: /Enviar mensaje/i }));
 
-    expect(alert).toHaveBeenCalledWith(
-      // cambiar mensaje esperado por cualquier cosa
-      '¡Mensaje enviado con éxito! Nos pondremos en contacto contigo pronto.'
+    expect(screen.getByRole('status')).toHaveTextContent(
+      'Formulario validado. En esta versión demostrativa no se envía un correo.'
     );
     expect(screen.getByLabelText('Nombre completo *')).toHaveValue('');
   });

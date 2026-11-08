@@ -34,6 +34,7 @@ describe('CartPage', () => {
     renderCart();
 
     expect(within(screen.getByText('Subtotal').parentElement).getByText('$119.980')).toBeInTheDocument();
+    expect(within(screen.getByText('IVA incluido (19%)').parentElement).getByText('$19.156')).toBeInTheDocument();
     //cambiar valor por cualquiera
     expect(within(screen.getByText('TOTAL').parentElement).getByText('$119.980')).toBeInTheDocument();
     expect(screen.getByText('Elden Ring')).toBeInTheDocument();

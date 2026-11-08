@@ -25,6 +25,13 @@ describe('DetailPage', () => {
     expect(screen.getByRole('heading', { name: 'Requisitos del Sistema' })).toBeInTheDocument();
   });
 
+  it('no muestra un tráiler cuando el juego no tiene uno disponible', () => {
+    renderDetailPage(vi.fn());
+
+    expect(screen.queryByRole('button', { name: 'Mostrar Tráiler' })).not.toBeInTheDocument();
+    expect(screen.getByRole('img', { name: 'Captura 1' })).toBeInTheDocument();
+  });
+
   it('permite seleccionar una imagen de la galería', async () => {
     const user = userEvent.setup();
     renderDetailPage(vi.fn());

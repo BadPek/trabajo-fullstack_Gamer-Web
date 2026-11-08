@@ -6,7 +6,7 @@ export const juegosData = [
         categoria: 'Action RPG / Fantasía Oscura',
         imagen: 'src/img/elden_ring.jpg',
         descripcion_corta: 'Álzate, Sinluz, y déjate guiar por la gracia para esgrimir el poder del Círculo de Elden y convertirte en el Señor del Círculo en las Tierras Intermedias.',
-        video: 'src/videos/elden.webm',
+        video: null,
         galeria: [
             'src/img/elden_ring.jpg',
             'https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=800&fit=crop',

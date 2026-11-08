@@ -1,6 +1,11 @@
+const IVA_RATE = 0.19;
+
 export const calculateSubtotal = (cartItems = []) => {
   return cartItems.reduce((acc, item) => acc + item.precio * item.cantidad, 0);
 };
+
+export const calculateIncludedVat = (grossAmount) =>
+  Math.round((grossAmount * IVA_RATE) / (1 + IVA_RATE));
 
 export const isValidCoupon = (couponCode) =>
   typeof couponCode === 'string' && ['GAMER10', 'DUOC2026'].includes(couponCode.toUpperCase());

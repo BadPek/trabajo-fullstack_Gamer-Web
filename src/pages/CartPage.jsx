@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { calculateSubtotal, applyCouponDiscount } from '@/utils/cartUtils';
+import { calculateSubtotal, calculateIncludedVat, applyCouponDiscount } from '@/utils/cartUtils';
 import { getImageUrl } from '@/utils/imageUtils';
 import { DiscountCoupon } from '@/components/molecules/DiscountCoupon/DiscountCoupon';
 
@@ -19,6 +19,7 @@ export const CartPage = ({
 
   const subtotal = calculateSubtotal(cartItems);
   const { discountAmount, finalTotal } = applyCouponDiscount(subtotal, coupon);
+  const includedVat = calculateIncludedVat(finalTotal);
 
   const handleClearCart = () => {
     if (window.confirm('¿Estás seguro de que deseas vaciar tu carrito de compras?')) {
@@ -114,9 +115,14 @@ export const CartPage = ({
               </div>
             )}
             <div className="d-flex justify-content-between mb-2">
+              <span className="text-secondary">IVA incluido (19%)</span>
+              <span>${includedVat.toLocaleString('es-CL')}</span>
+            </div>
+            <div className="d-flex justify-content-between mb-2">
               <span className="text-secondary">Envío digital</span>
               <span className="text-success fw-semibold">Gratis</span>
             </div>
+            <p className="small text-muted mb-0">El IVA ya está incluido en el total y no se suma nuevamente.</p>
             <hr />
             <div className="d-flex justify-content-between mb-4 fs-5 fw-bold text-purple">
               <span>TOTAL</span>

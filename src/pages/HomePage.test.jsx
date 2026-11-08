@@ -11,6 +11,7 @@ import { HomePage } from './HomePage';
 describe('HomePage', () => {
   afterEach(() => {
     cleanup();
+    sessionStorage.removeItem('gz_bienvenida_cupon_mostrada');
     vi.useRealTimers();
   });
 
@@ -21,6 +22,7 @@ describe('HomePage', () => {
       </BrowserRouter>
     );
 
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Grandes Ofertas de Temporada' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Mostrar oferta 1' })).toHaveAttribute('aria-current', 'true');
     expect(screen.getByRole('button', { name: 'Mostrar oferta 2' })).toHaveAttribute('aria-current', 'false');
@@ -29,6 +31,43 @@ describe('HomePage', () => {
     expect(screen.getAllByTestId(/^product-card-/)).toHaveLength(juegosData.length);
     // añadir
     // expect(screen.getByRole('heading', { name: 'Oferta inexistente' })).toBeInTheDocument();
+  });
+
+  it('muestra el cupón GAMER10 después de 800 ms y permite cerrarlo', () => {
+    vi.useFakeTimers();
+    render(
+      <BrowserRouter>
+        <HomePage onAddToCart={vi.fn()} />
+      </BrowserRouter>
+    );
+
+    act(() => vi.advanceTimersByTime(800));
+
+    expect(screen.getByRole('dialog', { name: 'Una oferta para tu próxima partida' })).toBeInTheDocument();
+    expect(screen.getByLabelText('Cupón GAMER10')).toHaveTextContent('GAMER10');
+    expect(sessionStorage.getItem('gz_bienvenida_cupon_mostrada')).toBe('true');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Cerrar promoción' }));
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+  });
+
+  it('no vuelve a mostrar el modal durante la misma sesión', () => {
+    vi.useFakeTimers();
+    const renderHome = () => render(
+      <BrowserRouter>
+        <HomePage onAddToCart={vi.fn()} />
+      </BrowserRouter>
+    );
+    const firstRender = renderHome();
+
+    act(() => vi.advanceTimersByTime(800));
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
+    firstRender.unmount();
+
+    renderHome();
+    act(() => vi.advanceTimersByTime(800));
+
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
 
   it('cambia la oferta con los controles y los indicadores', () => {

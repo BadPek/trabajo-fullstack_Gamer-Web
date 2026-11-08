@@ -1,10 +1,37 @@
 import { Link, NavLink } from 'react-router-dom';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Badge } from '@/components/atoms/Badge/Badge';
 
 export const Navbar = ({ cartCount = 0, currentUser, onLogout }) => {
   const [menuOpen, setMenuOpen] = useState(false);
-  const closeMenu = () => setMenuOpen(false);
+  const [accountMenuOpen, setAccountMenuOpen] = useState(false);
+  const accountMenuRef = useRef(null);
+  const accountMenuButtonRef = useRef(null);
+  const closeMenu = () => {
+    setMenuOpen(false);
+    setAccountMenuOpen(false);
+  };
+
+  useEffect(() => {
+    if (!accountMenuOpen) return undefined;
+
+    const handlePointerDown = (event) => {
+      if (!accountMenuRef.current?.contains(event.target)) setAccountMenuOpen(false);
+    };
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape') {
+        setAccountMenuOpen(false);
+        accountMenuButtonRef.current?.focus();
+      }
+    };
+
+    document.addEventListener('pointerdown', handlePointerDown);
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('pointerdown', handlePointerDown);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [accountMenuOpen]);
 
   return (
     <nav className="navbar navbar-expand-lg navbar-dark navbar-purple sticky-top">
@@ -52,12 +79,32 @@ export const Navbar = ({ cartCount = 0, currentUser, onLogout }) => {
           </ul>
           <div className="d-flex gap-2 align-items-center flex-wrap">
             {currentUser ? (
-              <>
-                <span className="text-white small">Hola, {currentUser.nombre}</span>
-                <button className="btn btn-outline-light btn-sm" type="button" onClick={() => { onLogout(); closeMenu(); }}>
-                  Cerrar sesión
+              <div className="dropdown" ref={accountMenuRef}>
+                <button
+                  ref={accountMenuButtonRef}
+                  className="btn btn-outline-light btn-sm dropdown-toggle"
+                  id="account-menu-button"
+                  type="button"
+                  aria-expanded={accountMenuOpen}
+                  aria-controls="account-menu"
+                  onClick={() => setAccountMenuOpen((isOpen) => !isOpen)}
+                >
+                  Hola, {currentUser.nombre}
                 </button>
-              </>
+                <div
+                  className={`dropdown-menu dropdown-menu-end ${accountMenuOpen ? 'show' : ''}`}
+                  id="account-menu"
+                >
+                  <span className="dropdown-item-text">{currentUser.correo}</span>
+                  <button
+                    className="dropdown-item"
+                    type="button"
+                    onClick={() => { onLogout(); closeMenu(); }}
+                  >
+                    Cerrar sesión
+                  </button>
+                </div>
+              </div>
             ) : (
               <>
                 <Link to="/login" className="btn btn-outline-light btn-sm px-3" onClick={closeMenu}>

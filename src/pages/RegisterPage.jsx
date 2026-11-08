@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { getEmailSuggestions, isAllowedEmail } from '@/utils/emailUtils';
-import { validateRut } from '@/utils/rutUtils';
+import { cleanRut, validateRut } from '@/utils/rutUtils';
 import { Input } from '@/components/atoms/Input/Input';
 import { FormField } from '@/components/molecules/FormField/FormField';
 
@@ -29,14 +29,18 @@ export const RegisterPage = ({ onRegister }) => {
 
   const updateField = (field, value) => {
     setForm((current) => ({ ...current, [field]: value, ...(field === 'region' ? { comuna: '' } : {}) }));
-    setErrors((current) => ({ ...current, [field]: '' }));
+    setErrors((current) => ({
+      ...current,
+      [field]: '',
+      ...(field === 'region' ? { comuna: '' } : {}),
+    }));
     setSuccess(false);
   };
 
   const handleSubmit = (event) => {
     event.preventDefault();
     const nextErrors = {};
-    const rut = form.rut.trim();
+    const rut = cleanRut(form.rut);
     const nombre = form.nombre.trim();
     const apellido = form.apellido.trim();
     const correo = form.correo.trim();
@@ -57,6 +61,9 @@ export const RegisterPage = ({ onRegister }) => {
 
     if (!form.pass) nextErrors.pass = 'La contraseña es obligatoria.';
     else if (form.pass.length < 4 || form.pass.length > 10) nextErrors.pass = 'Debe tener entre 4 y 10 caracteres.';
+
+    if (!form.region) nextErrors.region = 'La región es obligatoria.';
+    if (!form.comuna) nextErrors.comuna = 'La comuna es obligatoria.';
 
     if (!direccion) nextErrors.direccion = 'La dirección es obligatoria.';
     else if (direccion.length > 300) nextErrors.direccion = 'Máximo 300 caracteres.';
@@ -159,6 +166,8 @@ export const RegisterPage = ({ onRegister }) => {
                 <FormField
                   id="register-region"
                   label="Región"
+                  required
+                  error={errors.region}
                   className=""
                   control={(
                     <Input as="select" value={form.region} onChange={(event) => updateField('region', event.target.value)}>
@@ -174,6 +183,8 @@ export const RegisterPage = ({ onRegister }) => {
                 <FormField
                   id="register-commune"
                   label="Comuna"
+                  required
+                  error={errors.comuna}
                   className=""
                   control={(
                     <Input as="select" value={form.comuna} onChange={(event) => updateField('comuna', event.target.value)} disabled={!form.region}>

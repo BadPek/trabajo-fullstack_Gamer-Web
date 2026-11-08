@@ -7,6 +7,7 @@ import {
   registerUser,
   setActiveUser,
 } from './sessionUtils';
+import { dismissStorageWarning, getStorageWarning } from './sessionStorageUtils';
 
 const registeredUser = {
   rut: '12345678-5',
@@ -19,6 +20,7 @@ const registeredUser = {
 // npm test -- --run src\utils\sessionUtils.test.js
 beforeEach(() => {
   sessionStorage.clear();
+  dismissStorageWarning();
 });
 
 describe('sessionUtils', () => {
@@ -76,5 +78,23 @@ describe('sessionUtils', () => {
     expect(getActiveUser()).toBeNull();
     // cambiar por expect(sessionStorage.getItem('gz_usuario_activo')).not.toBeNull();
     expect(sessionStorage.getItem('gz_usuario_activo')).toBeNull();
+  });
+
+  it('restablece la lista de usuarios si el JSON guardado está dañado', () => {
+    sessionStorage.setItem('gz_usuarios', '{');
+
+    expect(getUsers()).toContainEqual(
+      expect.objectContaining({ correo: 'estudiante@duoc.cl' })
+    );
+    expect(JSON.parse(sessionStorage.getItem('gz_usuarios'))).toHaveLength(1);
+    expect(getStorageWarning()).toMatch(/datos guardados para los usuarios estaban dañados/);
+  });
+
+  it('descarta una sesión activa dañada sin bloquear el inicio de la aplicación', () => {
+    sessionStorage.setItem('gz_usuario_activo', '{');
+
+    expect(getActiveUser()).toBeNull();
+    expect(sessionStorage.getItem('gz_usuario_activo')).toBeNull();
+    expect(getStorageWarning()).toMatch(/datos guardados para la sesión de usuario estaban dañados/);
   });
 });

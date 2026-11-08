@@ -11,7 +11,7 @@ export const NewsPage = () => (
       </p>
     </header>
 
-    <main>
+    <div>
       <section className="mb-5">
         <article className="card border-0 shadow-sm overflow-hidden rounded-4">
           <div className="row g-0 align-items-center">
@@ -63,6 +63,6 @@ export const NewsPage = () => (
           </article>
         </div>
       </section>
-    </main>
+    </div>
   </>
 );

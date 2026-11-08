@@ -4,14 +4,16 @@ import { Input } from '@/components/atoms/Input/Input';
 import { FormField } from '@/components/molecules/FormField/FormField';
 
 const initialForm = { nombre: '', correo: '', asunto: '', mensaje: '' };
-const successMessage = '¡Mensaje enviado con éxito! Nos pondremos en contacto contigo pronto.';
+const successMessage = 'Formulario validado. En esta versión demostrativa no se envía un correo.';
 
 export const ContactPage = () => {
   const [form, setForm] = useState(initialForm);
   const [errors, setErrors] = useState({});
+  const [success, setSuccess] = useState('');
   const updateField = (field, value) => {
     setForm((current) => ({ ...current, [field]: value }));
     setErrors((current) => ({ ...current, [field]: '' }));
+    setSuccess('');
   };
 
   const handleSubmit = (event) => {
@@ -36,7 +38,7 @@ export const ContactPage = () => {
 
     setErrors(nextErrors);
     if (Object.keys(nextErrors).length > 0) return;
-    window.alert(successMessage);
+    setSuccess(successMessage);
     setForm(initialForm);
   };
 
@@ -49,6 +51,8 @@ export const ContactPage = () => {
             <h1 className="h2 text-purple fw-bold mb-1">Contáctanos</h1>
             <p className="text-secondary small">Envíanos un mensaje y te responderemos a la brevedad.</p>
           </div>
+
+          {success && <div className="alert alert-success" role="status">{success}</div>}
 
           <form onSubmit={handleSubmit} noValidate>
             <FormField

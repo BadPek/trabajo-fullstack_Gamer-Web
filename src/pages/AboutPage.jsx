@@ -14,7 +14,7 @@ export const AboutPage = () => (
       </div>
     </header>
 
-    <main>
+    <div>
       <section className="row align-items-center mb-5 g-5">
         <div className="col-lg-6">
           <Badge variant="purple-light" className="px-3 py-2 mb-2 fw-semibold">Nuestra Historia</Badge>
@@ -56,6 +56,6 @@ export const AboutPage = () => (
           ))}
         </div>
       </section>
-    </main>
+    </div>
   </>
 );

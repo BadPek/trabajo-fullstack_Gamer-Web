@@ -11,6 +11,7 @@ import { AboutPage } from '@/pages/AboutPage';
 import { NewsPage } from '@/pages/NewsPage';
 import { LoginPage } from '@/pages/LoginPage';
 import { useCart } from '@/hooks/useCart';
+import { dismissStorageWarning, useStorageWarning } from '@/utils/sessionStorageUtils';
 import {
   authenticateUser,
   clearActiveUser,
@@ -22,6 +23,7 @@ import {
 export function App() {
   const cart = useCart();
   const [currentUser, setCurrentUser] = useState(getActiveUser);
+  const storageWarning = useStorageWarning();
 
   const handleLogin = (email, password) => {
     const user = authenticateUser(email, password);
@@ -45,6 +47,17 @@ export function App() {
   return (
     <BrowserRouter>
       <MainLayout cartCount={cart.totalCount} currentUser={currentUser} onLogout={handleLogout}>
+        {storageWarning && (
+          <div className="alert alert-warning d-flex justify-content-between align-items-start gap-3" role="alert">
+            <span>{storageWarning}</span>
+            <button
+              type="button"
+              className="btn-close"
+              aria-label="Cerrar aviso de almacenamiento"
+              onClick={dismissStorageWarning}
+            />
+          </div>
+        )}
         <Routes>
           <Route path="/" element={<HomePage onAddToCart={cart.addToCart} />} />
           <Route path="/productos" element={<CatalogPage onAddToCart={cart.addToCart} />} />
