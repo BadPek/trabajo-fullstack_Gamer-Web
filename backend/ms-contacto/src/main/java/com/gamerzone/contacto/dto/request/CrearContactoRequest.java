@@ -20,6 +20,7 @@ public record CrearContactoRequest(
 
         @Schema(description = "Asunto del mensaje.", example = "Consulta sobre un pedido")
         @NotBlank(message = "El asunto es obligatorio.")
+        @Size(max = 120, message = "El asunto no puede superar los 120 caracteres.")
         String asunto,
 
         @Schema(description = "Contenido del mensaje.")
