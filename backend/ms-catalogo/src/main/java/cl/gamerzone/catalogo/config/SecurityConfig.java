@@ -40,16 +40,12 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable())
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
+                .requestMatchers("/api/v1/admin/products/**")
+                    .hasRole("ADMINISTRADOR")
                 .requestMatchers(HttpMethod.GET,
                         "/api/v1/products", "/api/v1/products/**", "/api/v1/health", "/api/v1/health/**",
                         "/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**", "/v3/api-docs.yaml")
                     .permitAll()
-                .requestMatchers(HttpMethod.POST, "/api/v1/products", "/api/v1/products/**")
-                    .hasRole("ADMINISTRADOR")
-                .requestMatchers(HttpMethod.PUT, "/api/v1/products/**")
-                    .hasRole("ADMINISTRADOR")
-                .requestMatchers(HttpMethod.DELETE, "/api/v1/products/**")
-                    .hasRole("ADMINISTRADOR")
                 .anyRequest().denyAll()
             )
             .exceptionHandling(exceptions -> exceptions

@@ -3,10 +3,13 @@ package cl.gamerzone.catalogo.service;
 import java.util.List;
 import java.util.UUID;
 
+import cl.gamerzone.catalogo.dto.product.AdminProductDetailResponse;
+import cl.gamerzone.catalogo.dto.product.AdminProductPageResponse;
 import cl.gamerzone.catalogo.dto.product.ProductCreateRequest;
 import cl.gamerzone.catalogo.dto.product.ProductDetailResponse;
 import cl.gamerzone.catalogo.dto.product.ProductPageResponse;
 import cl.gamerzone.catalogo.dto.product.ProductResponse;
+import cl.gamerzone.catalogo.dto.product.ProductStatus;
 import cl.gamerzone.catalogo.dto.product.ProductUpdateRequest;
 
 import org.springframework.stereotype.Service;
@@ -25,19 +28,31 @@ public class ProductService {
         throw persistenceNotConfigured();
     }
 
+    public AdminProductPageResponse findAdmin(int page, int size, ProductStatus status) {
+        throw persistenceNotConfigured();
+    }
+
     public ProductDetailResponse findById(UUID id) {
         throw persistenceNotConfigured();
     }
 
-    public ProductDetailResponse create(ProductCreateRequest request) {
+    public AdminProductDetailResponse findAdminById(UUID id) {
         throw persistenceNotConfigured();
     }
 
-    public ProductDetailResponse update(UUID id, ProductUpdateRequest request) {
+    public AdminProductDetailResponse create(ProductCreateRequest request) {
+        throw persistenceNotConfigured();
+    }
+
+    public AdminProductDetailResponse update(UUID id, ProductUpdateRequest request) {
         throw persistenceNotConfigured();
     }
 
     public void archive(UUID id) {
+        throw persistenceNotConfigured();
+    }
+
+    public AdminProductDetailResponse updateStatus(UUID id, ProductStatus status) {
         throw persistenceNotConfigured();
     }
 

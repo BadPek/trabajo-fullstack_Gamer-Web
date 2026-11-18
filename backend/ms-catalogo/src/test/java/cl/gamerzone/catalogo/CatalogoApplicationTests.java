@@ -33,13 +33,27 @@ class CatalogoApplicationTests {
 				.andExpect(jsonPath("$.paths['/api/v1/products'].get.summary").value("Listar productos"))
 				.andExpect(jsonPath("$.paths['/api/v1/products'].get.responses.200.content['application/json'].schema.$ref")
 						.value("#/components/schemas/ProductPageResponse"))
-				.andExpect(jsonPath("$.paths['/api/v1/products'].post.requestBody.content['application/json'].schema.$ref")
+				.andExpect(jsonPath("$.paths['/api/v1/admin/products'].get.security[0].bearerAuth").exists())
+				.andExpect(jsonPath("$.paths['/api/v1/admin/products'].get.responses.200.content"
+						+ "['application/json'].schema.$ref").value("#/components/schemas/AdminProductPageResponse"))
+				.andExpect(jsonPath("$.paths['/api/v1/admin/products'].post.requestBody.content['application/json'].schema.$ref")
 						.value("#/components/schemas/ProductCreateRequest"))
-				.andExpect(jsonPath("$.paths['/api/v1/products'].post.responses.400.content['application/problem+json']")
+				.andExpect(jsonPath("$.paths['/api/v1/admin/products'].post.responses.201.content"
+						+ "['application/json'].schema.$ref").value("#/components/schemas/AdminProductDetailResponse"))
+				.andExpect(jsonPath("$.paths['/api/v1/admin/products'].post.responses.400.content['application/problem+json']")
 						.exists())
-				.andExpect(jsonPath("$.paths['/api/v1/products'].post.security[0].bearerAuth").exists())
-				.andExpect(jsonPath("$.paths['/api/v1/products/{id}'].put.responses.500").exists())
-				.andExpect(jsonPath("$.paths['/api/v1/products/{id}'].delete").exists())
+				.andExpect(jsonPath("$.paths['/api/v1/admin/products'].post.security[0].bearerAuth").exists())
+				.andExpect(jsonPath("$.paths['/api/v1/admin/products/{id}'].put.responses.500").exists())
+				.andExpect(jsonPath("$.paths['/api/v1/admin/products/{id}'].delete").exists())
+				.andExpect(jsonPath("$.paths['/api/v1/admin/products/{id}/status'].patch.requestBody.content"
+						+ "['application/json'].schema.$ref").value("#/components/schemas/ProductStatusRequest"))
+				.andExpect(jsonPath("$.paths['/api/v1/admin/products/{id}/status'].patch.responses.200.content"
+						+ "['application/json'].schema.$ref")
+						.value("#/components/schemas/AdminProductDetailResponse"))
+				.andExpect(jsonPath("$.components.schemas.ProductStatusRequest.properties.status.enum[0]")
+						.value("ACTIVE"))
+				.andExpect(jsonPath("$.components.schemas.ProductStatusRequest.properties.status.enum[1]")
+						.value("ARCHIVED"))
 				.andExpect(jsonPath("$.components.securitySchemes.bearerAuth.scheme").value("bearer"));
 	}
 }

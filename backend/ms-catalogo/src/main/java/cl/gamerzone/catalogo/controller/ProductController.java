@@ -7,9 +7,13 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 
+import cl.gamerzone.catalogo.dto.product.AdminProductDetailResponse;
+import cl.gamerzone.catalogo.dto.product.AdminProductPageResponse;
 import cl.gamerzone.catalogo.dto.product.ProductCreateRequest;
 import cl.gamerzone.catalogo.dto.product.ProductDetailResponse;
 import cl.gamerzone.catalogo.dto.product.ProductPageResponse;
+import cl.gamerzone.catalogo.dto.product.ProductStatus;
+import cl.gamerzone.catalogo.dto.product.ProductStatusRequest;
 import cl.gamerzone.catalogo.dto.product.ProductUpdateRequest;
 import cl.gamerzone.catalogo.exception.ApiError;
 import cl.gamerzone.catalogo.service.ProductService;
@@ -26,6 +30,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -36,7 +41,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @Validated
 @RestController
-@RequestMapping("/api/v1/products")
+@RequestMapping("/api/v1")
 @Tag(name = "Productos", description = "Catálogo público y administración de productos.")
 public class ProductController {
 
@@ -46,7 +51,7 @@ public class ProductController {
         this.productService = productService;
     }
 
-    @GetMapping
+    @GetMapping("/products")
     @Operation(
             summary = "Listar productos",
             description = "Lectura pública. La respuesta contractual está definida, pero la operación no estará "
@@ -71,7 +76,7 @@ public class ProductController {
         return productService.findAll(page, size);
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("/products/{id}")
     @Operation(
             summary = "Consultar producto por ID",
             description = "Lectura pública. Requiere integrar la persistencia antes de estar disponible.")
@@ -97,7 +102,71 @@ public class ProductController {
         return productService.findById(id);
     }
 
-    @PostMapping
+    @GetMapping("/admin/products")
+    @Operation(
+            summary = "Listar productos para administración",
+            description = "Requiere ADMINISTRADOR. Permite filtrar por estado y usa paginación contractual.",
+            security = @SecurityRequirement(name = "bearerAuth"))
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Página de productos, incluido su estado.",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = AdminProductPageResponse.class))),
+            @ApiResponse(responseCode = "400", description = "Parámetros de consulta inválidos.",
+                    content = @Content(mediaType = "application/problem+json",
+                            schema = @Schema(implementation = ApiError.class))),
+            @ApiResponse(responseCode = "401", description = "JWT ausente o inválido.",
+                    content = @Content(mediaType = "application/problem+json",
+                            schema = @Schema(implementation = ApiError.class))),
+            @ApiResponse(responseCode = "403", description = "Se requiere ADMINISTRADOR.",
+                    content = @Content(mediaType = "application/problem+json",
+                            schema = @Schema(implementation = ApiError.class))),
+            @ApiResponse(responseCode = "500", description = "Persistencia pendiente.",
+                    content = @Content(mediaType = "application/problem+json",
+                            schema = @Schema(implementation = ApiError.class)))
+    })
+    public AdminProductPageResponse findAdmin(
+            @Parameter(description = "Índice de página desde cero.", example = "0")
+            @RequestParam(defaultValue = "0") @Min(0) int page,
+            @Parameter(description = "Cantidad de productos por página (máximo 100).", example = "20")
+            @RequestParam(defaultValue = "20") @Min(1) @Max(100) int size,
+            @Parameter(description = "Filtrar por estado del producto.", example = "ACTIVE")
+            @RequestParam(required = false) ProductStatus status) {
+        return productService.findAdmin(page, size, status);
+    }
+
+    @GetMapping("/admin/products/{id}")
+    @Operation(
+            summary = "Consultar producto para administración",
+            description = "Incluye productos archivados. Requiere ADMINISTRADOR.",
+            security = @SecurityRequirement(name = "bearerAuth"))
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Producto encontrado.",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = AdminProductDetailResponse.class))),
+            @ApiResponse(responseCode = "400", description = "El ID no es válido.",
+                    content = @Content(mediaType = "application/problem+json",
+                            schema = @Schema(implementation = ApiError.class))),
+            @ApiResponse(responseCode = "401", description = "JWT ausente o inválido.",
+                    content = @Content(mediaType = "application/problem+json",
+                            schema = @Schema(implementation = ApiError.class))),
+            @ApiResponse(responseCode = "403", description = "Se requiere ADMINISTRADOR.",
+                    content = @Content(mediaType = "application/problem+json",
+                            schema = @Schema(implementation = ApiError.class))),
+            @ApiResponse(responseCode = "404", description = "Producto no encontrado.",
+                    content = @Content(mediaType = "application/problem+json",
+                            schema = @Schema(implementation = ApiError.class))),
+            @ApiResponse(responseCode = "500", description = "Persistencia pendiente.",
+                    content = @Content(mediaType = "application/problem+json",
+                            schema = @Schema(implementation = ApiError.class)))
+    })
+    public AdminProductDetailResponse findAdminById(
+            @Parameter(description = "Identificador UUID del producto.",
+                    example = "550e8400-e29b-41d4-a716-446655440000")
+            @PathVariable UUID id) {
+        return productService.findAdminById(id);
+    }
+
+    @PostMapping("/admin/products")
     @Operation(
             summary = "Crear producto",
             description = "Requiere ADMINISTRADOR. La operación no estará disponible hasta integrar la persistencia "
@@ -107,7 +176,7 @@ public class ProductController {
             @ApiResponse(responseCode = "201",
                     description = "Respuesta contractual prevista; todavía no está disponible.",
                     content = @Content(mediaType = "application/json",
-                            schema = @Schema(implementation = ProductDetailResponse.class))),
+                            schema = @Schema(implementation = AdminProductDetailResponse.class))),
             @ApiResponse(responseCode = "400", description = "Solicitud inválida.",
                     content = @Content(mediaType = "application/problem+json",
                             schema = @Schema(implementation = ApiError.class))),
@@ -124,19 +193,19 @@ public class ProductController {
                     content = @Content(mediaType = "application/problem+json",
                             schema = @Schema(implementation = ApiError.class)))
     })
-    public ResponseEntity<ProductDetailResponse> create(
+    public ResponseEntity<AdminProductDetailResponse> create(
             @io.swagger.v3.oas.annotations.parameters.RequestBody(
                     description = "Datos completos del producto.",
                     required = true,
                     content = @Content(mediaType = "application/json",
                             schema = @Schema(implementation = ProductCreateRequest.class)))
             @Valid @RequestBody ProductCreateRequest request) {
-        ProductDetailResponse created = productService.create(request);
-        URI location = URI.create("/api/v1/products/" + created.id());
+        AdminProductDetailResponse created = productService.create(request);
+        URI location = URI.create("/api/v1/admin/products/" + created.id());
         return ResponseEntity.created(location).body(created);
     }
 
-    @PutMapping("/{id}")
+    @PutMapping("/admin/products/{id}")
     @Operation(
             summary = "Actualizar producto completamente",
             description = "Requiere ADMINISTRADOR. La operación no estará disponible hasta integrar la persistencia "
@@ -146,7 +215,7 @@ public class ProductController {
             @ApiResponse(responseCode = "200",
                     description = "Respuesta contractual prevista; todavía no está disponible.",
                     content = @Content(mediaType = "application/json",
-                            schema = @Schema(implementation = ProductDetailResponse.class))),
+                            schema = @Schema(implementation = AdminProductDetailResponse.class))),
             @ApiResponse(responseCode = "400", description = "ID o solicitud inválidos.",
                     content = @Content(mediaType = "application/problem+json",
                             schema = @Schema(implementation = ApiError.class))),
@@ -166,7 +235,7 @@ public class ProductController {
                     content = @Content(mediaType = "application/problem+json",
                             schema = @Schema(implementation = ApiError.class)))
     })
-    public ProductDetailResponse update(
+    public AdminProductDetailResponse update(
             @Parameter(description = "Identificador UUID del producto.",
                     example = "550e8400-e29b-41d4-a716-446655440000")
             @PathVariable UUID id,
@@ -179,7 +248,7 @@ public class ProductController {
         return productService.update(id, request);
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/admin/products/{id}")
     @Operation(
             summary = "Archivar producto",
             description = "Requiere ADMINISTRADOR. Cuando exista persistencia, implementará archivado lógico. "
@@ -210,5 +279,43 @@ public class ProductController {
             @PathVariable UUID id) {
         productService.archive(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @PatchMapping("/admin/products/{id}/status")
+    @Operation(
+            summary = "Cambiar estado del producto",
+            description = "Activa o archiva el producto. Requiere ADMINISTRADOR.",
+            security = @SecurityRequirement(name = "bearerAuth"))
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Estado actualizado.",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = AdminProductDetailResponse.class))),
+            @ApiResponse(responseCode = "400", description = "ID o estado inválido.",
+                    content = @Content(mediaType = "application/problem+json",
+                            schema = @Schema(implementation = ApiError.class))),
+            @ApiResponse(responseCode = "401", description = "JWT ausente o inválido.",
+                    content = @Content(mediaType = "application/problem+json",
+                            schema = @Schema(implementation = ApiError.class))),
+            @ApiResponse(responseCode = "403", description = "Se requiere ADMINISTRADOR.",
+                    content = @Content(mediaType = "application/problem+json",
+                            schema = @Schema(implementation = ApiError.class))),
+            @ApiResponse(responseCode = "404", description = "Producto no encontrado.",
+                    content = @Content(mediaType = "application/problem+json",
+                            schema = @Schema(implementation = ApiError.class))),
+            @ApiResponse(responseCode = "500", description = "Persistencia pendiente.",
+                    content = @Content(mediaType = "application/problem+json",
+                            schema = @Schema(implementation = ApiError.class)))
+    })
+    public AdminProductDetailResponse updateStatus(
+            @Parameter(description = "Identificador UUID del producto.",
+                    example = "550e8400-e29b-41d4-a716-446655440000")
+            @PathVariable UUID id,
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    description = "Estado explícito ACTIVE o ARCHIVED.",
+                    required = true,
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ProductStatusRequest.class)))
+            @Valid @RequestBody ProductStatusRequest request) {
+        return productService.updateStatus(id, request.status());
     }
 }
