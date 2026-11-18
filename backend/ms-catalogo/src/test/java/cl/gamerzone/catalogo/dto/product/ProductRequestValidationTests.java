@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validation;
@@ -90,14 +91,66 @@ class ProductRequestValidationTests {
                 "",
                 "e".repeat(151),
                 null,
-                "m".repeat(501),
-                " ");
+                List.of("m".repeat(101)),
+                List.of(" "));
 
         Set<ConstraintViolation<ProductDetails>> violations = validator.validate(invalid);
         assertEquals(5, violations.size());
         assertTrue(violations.stream().allMatch(violation -> violation.getMessage().contains("obligator")
-                || violation.getMessage().contains("superar")));
+                || violation.getMessage().contains("superar")
+                || violation.getMessage().contains("incluir")));
         assertTrue(validator.validate(validDetails()).isEmpty());
+    }
+
+    @Test
+    void acceptsTwentyModesAndLanguagesWithOneHundredCharactersEach() {
+        List<String> values = IntStream.range(0, 20)
+                .mapToObj(index -> "x".repeat(98) + String.format("%02d", index))
+                .toList();
+        ProductDetails details = new ProductDetails(
+                "Desarrollador",
+                "Editor",
+                LocalDate.of(2025, 1, 1),
+                values,
+                values);
+
+        assertTrue(validator.validate(details).isEmpty());
+    }
+
+    @Test
+    void rejectsEmptyModeAndLanguageLists() {
+        ProductDetails details = new ProductDetails(
+                "Desarrollador",
+                "Editor",
+                LocalDate.of(2025, 1, 1),
+                List.of(),
+                List.of());
+
+        assertEquals(2, validator.validate(details).size());
+    }
+
+    @Test
+    void rejectsDuplicateModesAndLanguagesIgnoringCaseAndOuterSpaces() {
+        ProductDetails details = new ProductDetails(
+                "Desarrollador",
+                "Editor",
+                LocalDate.of(2025, 1, 1),
+                List.of("Cooperativo", " cooperativo "),
+                List.of("Español", "español"));
+
+        assertEquals(2, validator.validate(details).size());
+    }
+
+    @Test
+    void rejectsMoreThanTwentyModesAndBlankOrOverlongLanguageNames() {
+        ProductDetails details = new ProductDetails(
+                "Desarrollador",
+                "Editor",
+                LocalDate.of(2025, 1, 1),
+                IntStream.range(0, 21).mapToObj(index -> "Modo " + index).toList(),
+                List.of("", "i".repeat(101)));
+
+        assertEquals(3, validator.validate(details).size());
     }
 
     @Test
@@ -154,7 +207,12 @@ class ProductRequestValidationTests {
     }
 
     private ProductDetails validDetails() {
-        return new ProductDetails("Desarrollador", "Editor", LocalDate.of(2025, 1, 1), "Un jugador", "Español");
+        return new ProductDetails(
+                "Desarrollador",
+                "Editor",
+                LocalDate.of(2025, 1, 1),
+                List.of("Un jugador"),
+                List.of("Español"));
     }
 
     private SystemRequirements validSystemRequirements() {

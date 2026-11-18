@@ -150,8 +150,8 @@ class ProductControllerTests {
                     "desarrollador": "FromSoftware",
                     "editor": "Bandai Namco",
                     "fechaLanzamiento": "2022-02-25",
-                    "modos": "Un jugador",
-                    "idiomas": "Español"
+                    "modos": ["Un jugador"],
+                    "idiomas": ["Español"]
                   },
                   "requisitos": {
                     "minimos": {
