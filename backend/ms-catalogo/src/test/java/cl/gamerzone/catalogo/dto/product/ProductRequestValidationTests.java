@@ -29,9 +29,28 @@ class ProductRequestValidationTests {
     }
 
     @Test
-    void acceptsCreateAndUpdateRequestsWithZeroPriceAndValidNestedData() {
+    void acceptsCreateAndUpdateRequestsWithPositivePriceAndValidNestedData() {
         assertTrue(validator.validate(validCreateRequest()).isEmpty());
         assertTrue(validator.validate(validUpdateRequest()).isEmpty());
+    }
+
+    @Test
+    void rejectsZeroPriceForCreateAndUpdateRequests() {
+        ProductCreateRequest create = validCreateRequestWithPrice(0);
+        ProductUpdateRequest update = new ProductUpdateRequest(
+                create.titulo(),
+                create.precio(),
+                create.categoria(),
+                create.imagen(),
+                create.descripcionCorta(),
+                create.descripcion(),
+                create.video(),
+                create.galeria(),
+                create.detalles(),
+                create.requisitos());
+
+        assertEquals(1, validator.validate(create).size());
+        assertEquals(1, validator.validate(update).size());
     }
 
     @Test
@@ -102,9 +121,13 @@ class ProductRequestValidationTests {
     }
 
     private ProductCreateRequest validCreateRequest() {
+        return validCreateRequestWithPrice(1);
+    }
+
+    private ProductCreateRequest validCreateRequestWithPrice(int price) {
         return new ProductCreateRequest(
                 "Juego",
-                0,
+                price,
                 "Acción",
                 "src/images/cover.png",
                 "Descripción breve",

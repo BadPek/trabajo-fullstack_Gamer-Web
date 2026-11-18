@@ -1,6 +1,7 @@
 package cl.gamerzone.catalogo.service;
 
 import java.util.List;
+import java.util.UUID;
 
 import cl.gamerzone.catalogo.dto.product.ProductCreateRequest;
 import cl.gamerzone.catalogo.dto.product.ProductDetailResponse;
@@ -14,10 +15,7 @@ import org.springframework.stereotype.Service;
 public class ProductService {
 
     /**
-     * Las búsquedas paginadas y sin paginar, la consulta por ID, la creación, la actualización
-     * completa y el archivado lógico dependen del modelo relacional aprobado. No se simula la
-     * persistencia; implementar esos métodos con repositorio, transacciones y consultas paginadas
-     * cuando el modelo esté disponible.
+     * La persistencia requiere migraciones Flyway y repositorios; no se simulan resultados.
      */
     public List<ProductResponse> findAll() {
         throw persistenceNotConfigured();
@@ -27,7 +25,7 @@ public class ProductService {
         throw persistenceNotConfigured();
     }
 
-    public ProductDetailResponse findById(Long id) {
+    public ProductDetailResponse findById(UUID id) {
         throw persistenceNotConfigured();
     }
 
@@ -35,16 +33,16 @@ public class ProductService {
         throw persistenceNotConfigured();
     }
 
-    public ProductDetailResponse update(Long id, ProductUpdateRequest request) {
+    public ProductDetailResponse update(UUID id, ProductUpdateRequest request) {
         throw persistenceNotConfigured();
     }
 
-    public void archive(Long id) {
+    public void archive(UUID id) {
         throw persistenceNotConfigured();
     }
 
     private IllegalStateException persistenceNotConfigured() {
         return new IllegalStateException(
-                "La persistencia de productos está pendiente de la aprobación del modelo relacional.");
+                "La persistencia de productos aún no está implementada.");
     }
 }

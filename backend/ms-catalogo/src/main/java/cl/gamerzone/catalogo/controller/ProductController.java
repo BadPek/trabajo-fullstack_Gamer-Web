@@ -1,11 +1,11 @@
 package cl.gamerzone.catalogo.controller;
 
 import java.net.URI;
+import java.util.UUID;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.Positive;
 
 import cl.gamerzone.catalogo.dto.product.ProductCreateRequest;
 import cl.gamerzone.catalogo.dto.product.ProductDetailResponse;
@@ -91,8 +91,9 @@ public class ProductController {
                             schema = @Schema(implementation = ApiError.class)))
     })
     public ProductDetailResponse findById(
-            @Parameter(description = "Identificador del producto.", example = "1")
-            @PathVariable @Positive Long id) {
+            @Parameter(description = "Identificador UUID del producto.",
+                    example = "550e8400-e29b-41d4-a716-446655440000")
+            @PathVariable UUID id) {
         return productService.findById(id);
     }
 
@@ -166,8 +167,9 @@ public class ProductController {
                             schema = @Schema(implementation = ApiError.class)))
     })
     public ProductDetailResponse update(
-            @Parameter(description = "Identificador del producto.", example = "1")
-            @PathVariable @Positive Long id,
+            @Parameter(description = "Identificador UUID del producto.",
+                    example = "550e8400-e29b-41d4-a716-446655440000")
+            @PathVariable UUID id,
             @io.swagger.v3.oas.annotations.parameters.RequestBody(
                     description = "Representación completa del producto actualizado.",
                     required = true,
@@ -203,8 +205,9 @@ public class ProductController {
                             schema = @Schema(implementation = ApiError.class)))
     })
     public ResponseEntity<Void> archive(
-            @Parameter(description = "Identificador del producto.", example = "1")
-            @PathVariable @Positive Long id) {
+            @Parameter(description = "Identificador UUID del producto.",
+                    example = "550e8400-e29b-41d4-a716-446655440000")
+            @PathVariable UUID id) {
         productService.archive(id);
         return ResponseEntity.noContent().build();
     }

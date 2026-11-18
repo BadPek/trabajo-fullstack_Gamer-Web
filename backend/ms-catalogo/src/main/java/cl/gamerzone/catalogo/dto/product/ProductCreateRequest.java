@@ -7,7 +7,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.PositiveOrZero;
+import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 
 public record ProductCreateRequest(
@@ -17,7 +17,7 @@ public record ProductCreateRequest(
         String titulo,
 
         @NotNull(message = "El precio es obligatorio.")
-        @PositiveOrZero(message = "El precio no puede ser negativo.")
+        @Positive(message = "El precio debe ser mayor que cero.")
         Integer precio,
 
         @NotBlank(message = "La categoría es obligatoria.")

@@ -1,7 +1,9 @@
 package cl.gamerzone.catalogo.dto.product;
 
+import java.util.UUID;
+
 public record ProductResponse(
-        Long id,
+        UUID id,
         String titulo,
         Integer precio,
         String categoria,

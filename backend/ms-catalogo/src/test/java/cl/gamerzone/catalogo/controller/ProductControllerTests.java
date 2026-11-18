@@ -11,8 +11,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 
 import java.util.List;
+import java.util.UUID;
 
 import cl.gamerzone.catalogo.config.SecurityConfig;
+import cl.gamerzone.catalogo.dto.product.ProductDetailResponse;
 import cl.gamerzone.catalogo.dto.product.ProductPageResponse;
 import cl.gamerzone.catalogo.service.ProductService;
 
@@ -72,6 +74,27 @@ class ProductControllerTests {
     }
 
     @Test
+    void productIdentifiersUseContractUuidFormat() throws Exception {
+        UUID id = UUID.fromString("550e8400-e29b-41d4-a716-446655440000");
+        when(productService.findById(id)).thenReturn(new ProductDetailResponse(
+                id, "Elden Ring", 59990, "Action RPG", "src/img/elden_ring.jpg",
+                "Descripción breve", "Descripción", null, List.of("src/img/elden_ring.jpg"), null, null));
+
+        mockMvc.perform(get("/api/v1/products/{id}", id))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(id.toString()));
+
+        verify(productService).findById(id);
+    }
+
+    @Test
+    void rejectsMalformedProductIdentifiers() throws Exception {
+        mockMvc.perform(get("/api/v1/products/not-a-uuid"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("VALIDATION_ERROR"));
+    }
+
+    @Test
     void rejectsAdministrativeWritesWithoutAToken() throws Exception {
         mockMvc.perform(post("/api/v1/products")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -100,9 +123,10 @@ class ProductControllerTests {
         mockMvc.perform(post("/api/v1/products").with(client).contentType(MediaType.APPLICATION_JSON).content("{}"))
                 .andExpect(status().isForbidden())
                 .andExpect(jsonPath("$.code").value("FORBIDDEN"));
-        mockMvc.perform(put("/api/v1/products/1").with(client).contentType(MediaType.APPLICATION_JSON).content("{}"))
+        mockMvc.perform(put("/api/v1/products/550e8400-e29b-41d4-a716-446655440000")
+                        .with(client).contentType(MediaType.APPLICATION_JSON).content("{}"))
                 .andExpect(status().isForbidden());
-        mockMvc.perform(delete("/api/v1/products/1").with(client))
+        mockMvc.perform(delete("/api/v1/products/550e8400-e29b-41d4-a716-446655440000").with(client))
                 .andExpect(status().isForbidden());
     }
 
