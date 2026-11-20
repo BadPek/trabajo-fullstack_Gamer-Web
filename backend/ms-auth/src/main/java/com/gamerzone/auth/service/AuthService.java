@@ -6,8 +6,10 @@ import com.gamerzone.auth.dto.request.LoginRequest;
 import com.gamerzone.auth.dto.request.RegistroRequest;
 import com.gamerzone.auth.dto.response.AuthResponse;
 import com.gamerzone.auth.dto.response.UsuarioResponse;
+import com.gamerzone.auth.entity.Comuna;
 import com.gamerzone.auth.entity.Usuario;
 import com.gamerzone.auth.exception.ApiException;
+import com.gamerzone.auth.repository.ComunaRepository;
 import com.gamerzone.auth.repository.UsuarioRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -18,13 +20,15 @@ import org.springframework.transaction.annotation.Transactional;
 public class AuthService {
 
     private final UsuarioRepository usuarioRepository;
+    private final ComunaRepository comunaRepository;
     private final PasswordEncoder passwordEncoder;
     private final RutValidator rutValidator;
     private final JwtService jwtService;
 
-    public AuthService(UsuarioRepository usuarioRepository, PasswordEncoder passwordEncoder,
-            RutValidator rutValidator, JwtService jwtService) {
+    public AuthService(UsuarioRepository usuarioRepository, ComunaRepository comunaRepository,
+            PasswordEncoder passwordEncoder, RutValidator rutValidator, JwtService jwtService) {
         this.usuarioRepository = usuarioRepository;
+        this.comunaRepository = comunaRepository;
         this.passwordEncoder = passwordEncoder;
         this.rutValidator = rutValidator;
         this.jwtService = jwtService;
@@ -48,15 +52,19 @@ public class AuthService {
         if (usuarioRepository.existsByRut(rut)) {
             throw new ApiException(HttpStatus.CONFLICT, "RUT_ALREADY_REGISTERED", "El RUT ya está registrado.");
         }
+        Comuna comuna = comunaRepository.findByRegion_CodeAndNameIgnoreCase(
+                        request.region().trim().toLowerCase(Locale.ROOT), request.comuna().trim())
+                .orElseThrow(() -> new ApiException(HttpStatus.BAD_REQUEST, "INVALID_COMMUNE",
+                        "La comuna no corresponde a la región indicada."));
         Usuario usuario = new Usuario(rut, request.nombre().trim(), request.apellido().trim(), correo,
-                passwordEncoder.encode(request.pass()), request.region().trim(), request.comuna().trim(),
-                request.direccion().trim());
+                passwordEncoder.encode(request.pass()), comuna, request.direccion().trim());
         return usuarioRepository.save(usuario).toResponse();
     }
 
     @Transactional(readOnly = true)
     public AuthResponse authenticate(LoginRequest request) {
         Usuario usuario = usuarioRepository.findByCorreoIgnoreCase(request.correo().trim())
+                .filter(Usuario::isActive)
                 .filter(account -> passwordEncoder.matches(request.pass(), account.getPasswordHash()))
                 .orElseThrow(() -> new ApiException(HttpStatus.UNAUTHORIZED, "INVALID_CREDENTIALS",
                         "Correo o contraseña incorrectos."));

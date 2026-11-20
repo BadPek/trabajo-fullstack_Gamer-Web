@@ -7,12 +7,12 @@ import org.springframework.stereotype.Component;
 @Component
 public class RutValidator {
 
+    /**
+     * Normaliza el RUT como se guarda en la base: sin puntos, guion ni espacios y con K mayúscula
+     * (por ejemplo {@code 19.011.022-2} queda {@code 190110222}).
+     */
     public String normalize(String rut) {
-        String compact = compact(rut);
-        if (compact.length() < 2) {
-            return compact;
-        }
-        return compact.substring(0, compact.length() - 1) + "-" + compact.charAt(compact.length() - 1);
+        return compact(rut);
     }
 
     public boolean isValid(String rut) {

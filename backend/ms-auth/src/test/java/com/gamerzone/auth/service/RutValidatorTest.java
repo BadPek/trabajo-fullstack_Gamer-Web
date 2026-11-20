@@ -13,7 +13,8 @@ class RutValidatorTest {
     @Test
     void acceptsValidRutWithFormattingAndNormalizesIt() {
         assertTrue(validator.isValid("19.011.022-2"));
-        assertEquals("19011022-2", validator.normalize("19.011.022-2"));
+        assertEquals("190110222", validator.normalize("19.011.022-2"));
+        assertEquals("12345678K", validator.normalize(" 12.345.678-k "));
     }
 
     @Test

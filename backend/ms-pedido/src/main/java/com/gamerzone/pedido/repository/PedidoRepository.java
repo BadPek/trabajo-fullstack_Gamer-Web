@@ -10,9 +10,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 public interface PedidoRepository extends JpaRepository<Pedido, String> {
 
     @EntityGraph(attributePaths = "items")
-    Optional<Pedido> findByCustomerIdAndIdempotencyKey(String customerId, String idempotencyKey);
-
-    @EntityGraph(attributePaths = "items")
     List<Pedido> findByCustomerIdOrderByCreatedAtDesc(String customerId);
 
     @EntityGraph(attributePaths = "items")

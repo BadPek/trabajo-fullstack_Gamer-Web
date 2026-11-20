@@ -12,7 +12,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.Pattern;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -42,8 +42,11 @@ public class PedidoController {
     @PostMapping
     @Operation(summary = "Crear un pedido idempotente desde el carrito actual")
     public ResponseEntity<PedidoResponse> create(
-            @Parameter(description = "Clave estable para reintentar la misma solicitud.", required = true)
-            @RequestHeader("Idempotency-Key") @NotBlank @Size(max = 128) String idempotencyKey,
+            @Parameter(description = "UUID v4 estable para reintentar la misma solicitud.", required = true)
+            @RequestHeader("Idempotency-Key") @NotBlank
+            @Pattern(regexp = "(?i)^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+                    message = "Idempotency-Key debe ser un UUID v4.")
+            String idempotencyKey,
             @Valid @RequestBody CrearPedidoRequest request,
             @AuthenticationPrincipal Jwt jwt) {
         PedidoResponse result = pedidoService.create(jwt.getSubject(), jwt.getTokenValue(), idempotencyKey, request);

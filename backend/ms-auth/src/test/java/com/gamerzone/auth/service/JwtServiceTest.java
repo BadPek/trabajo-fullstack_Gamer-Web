@@ -10,6 +10,8 @@ import java.security.Signature;
 import java.util.Base64;
 
 import com.gamerzone.auth.config.JwtKeyProvider;
+import com.gamerzone.auth.entity.Comuna;
+import com.gamerzone.auth.entity.Region;
 import com.gamerzone.auth.entity.Usuario;
 import tools.jackson.databind.json.JsonMapper;
 import org.junit.jupiter.api.Test;
@@ -26,8 +28,10 @@ class JwtServiceTest {
                 pem("PUBLIC KEY", pair.getPublic().getEncoded()));
         JwtService service = new JwtService(keys, JsonMapper.builder().build(),
                 "https://auth.example.test", "key-1", 900);
-        Usuario usuario = new Usuario("19011022-2", "Ana", "Gamer", "ana@gmail.com",
-                "unused-hash", "metropolitana", "Santiago", "Calle 1");
+        Usuario usuario = new Usuario("190110222", "Ana", "Gamer", "ana@gmail.com", "unused-hash",
+                new Comuna(101, new Region(1, "metropolitana", "Región Metropolitana de Santiago"),
+                        "Santiago Centro"),
+                "Calle 1");
 
         String[] parts = service.issue(usuario).split("\\.");
         Signature verifier = Signature.getInstance("SHA256withRSA");

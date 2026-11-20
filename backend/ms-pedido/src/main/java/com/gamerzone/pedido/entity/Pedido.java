@@ -1,6 +1,7 @@
 package com.gamerzone.pedido.entity;
 
-import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -12,41 +13,39 @@ import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
-import jakarta.persistence.UniqueConstraint;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
+/**
+ * Pedido sin pago (tabla {@code orders}, migración V1 de ms-pedido).
+ *
+ * <p>No guarda dirección ni importes: el total se calcula desde las líneas (snapshots inmutables).
+ * La clave de idempotencia vive en {@link PedidoIdempotencia}. Las fechas se guardan en UTC.</p>
+ */
 @Entity
-@Table(name = "GZ_ORDERS", uniqueConstraints = {
-        @UniqueConstraint(name = "UK_GZ_ORDERS_IDEMPOTENCY", columnNames = {"CUSTOMER_ID", "IDEMPOTENCY_KEY"})
-})
+@Table(name = "orders")
 public class Pedido {
 
+    public static final String ESTADO_REGISTRADO_SIN_PAGO = "REGISTRADO_SIN_PAGO";
+    public static final int POLITICA_PRECIOS_ACTUAL = 1;
+
     @Id
-    @Column(name = "ID", length = 36, nullable = false)
+    @JdbcTypeCode(SqlTypes.CHAR)
+    @Column(name = "order_id", nullable = false, length = 36, columnDefinition = "CHAR(36)")
     private String id;
 
-    @Column(name = "CUSTOMER_ID", length = 100, nullable = false)
+    @JdbcTypeCode(SqlTypes.CHAR)
+    @Column(name = "user_id", nullable = false, length = 36, columnDefinition = "CHAR(36)")
     private String customerId;
 
-    @Column(name = "IDEMPOTENCY_KEY", length = 128, nullable = false)
-    private String idempotencyKey;
-
-    @Column(name = "REQUEST_HASH", length = 64, nullable = false)
-    private String requestHash;
-
-    @Column(name = "STATUS", length = 30, nullable = false)
+    @Column(name = "status", nullable = false, length = 30)
     private String status;
 
-    @Column(name = "SHIPPING_ADDRESS", length = 300, nullable = false)
-    private String shippingAddress;
+    @Column(name = "pricing_policy_version", nullable = false, precision = 5, scale = 0)
+    private Integer pricingPolicyVersion;
 
-    @Column(name = "CURRENCY", length = 3, nullable = false)
-    private String currency;
-
-    @Column(name = "TOTAL_AMOUNT", nullable = false)
-    private long totalAmount;
-
-    @Column(name = "CREATED_AT", nullable = false)
-    private Instant createdAt;
+    @Column(name = "created_at", nullable = false)
+    private LocalDateTime createdAt;
 
     @OneToMany(mappedBy = "pedido", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<PedidoItem> items = new ArrayList<>();
@@ -54,16 +53,11 @@ public class Pedido {
     protected Pedido() {
     }
 
-    public Pedido(String customerId, String idempotencyKey, String requestHash, String shippingAddress,
-            long totalAmount) {
+    public Pedido(String customerId) {
         this.customerId = customerId;
-        this.idempotencyKey = idempotencyKey;
-        this.requestHash = requestHash;
-        this.shippingAddress = shippingAddress;
-        this.totalAmount = totalAmount;
-        this.currency = "CLP";
-        this.status = "CREADO";
-        this.createdAt = Instant.now();
+        this.status = ESTADO_REGISTRADO_SIN_PAGO;
+        this.pricingPolicyVersion = POLITICA_PRECIOS_ACTUAL;
+        this.createdAt = LocalDateTime.now(ZoneOffset.UTC);
     }
 
     public void addItem(PedidoItem item) {
@@ -77,18 +71,23 @@ public class Pedido {
             id = UUID.randomUUID().toString();
         }
         if (createdAt == null) {
-            createdAt = Instant.now();
+            createdAt = LocalDateTime.now(ZoneOffset.UTC);
         }
+    }
+
+    /** Total del pedido: suma de precio unitario por cantidad de cada línea. No se persiste. */
+    public long getTotal() {
+        long total = 0;
+        for (PedidoItem item : items) {
+            total = Math.addExact(total, item.getLineTotal());
+        }
+        return total;
     }
 
     public String getId() { return id; }
     public String getCustomerId() { return customerId; }
-    public String getIdempotencyKey() { return idempotencyKey; }
-    public String getRequestHash() { return requestHash; }
     public String getStatus() { return status; }
-    public String getShippingAddress() { return shippingAddress; }
-    public String getCurrency() { return currency; }
-    public long getTotalAmount() { return totalAmount; }
-    public Instant getCreatedAt() { return createdAt; }
+    public Integer getPricingPolicyVersion() { return pricingPolicyVersion; }
+    public LocalDateTime getCreatedAt() { return createdAt; }
     public List<PedidoItem> getItems() { return List.copyOf(items); }
 }

@@ -8,22 +8,27 @@ Servicio Spring Boot para registro de clientes, autenticación BCrypt y emisión
 ## Configuración
 
 Requiere `DB_USERNAME`, `DB_PASSWORD`, `JWT_PRIVATE_KEY` (PEM PKCS#8 RSA) y `JWT_PUBLIC_KEY` (PEM X.509 RSA).
-`DB_URL` apunta por defecto a `jdbc:oracle:thin:@//localhost:1521/ORCLPDB1`; `DB_SCHEMA` selecciona el esquema
+`DB_URL` apunta por defecto a `jdbc:oracle:thin:@//localhost:1521/XEPDB1`; `DB_SCHEMA` selecciona el esquema
 independiente y por defecto usa el usuario Oracle. `JWT_ISSUER_URI` debe ser idéntico al issuer publicado.
 Las claves deben ser pares RSA persistentes compartidos con los validadores; no se generan claves efímeras.
 
-## Persistencia pendiente de aprobación
+## Persistencia
 
-No existe en el repositorio el DDL aprobado de Andrés ni una definición de columnas para autenticación. `Usuario` y
-`GZ_AUTH_USERS` son un mapeo de trabajo explícitamente provisional; no se crea una migración Flyway ni se afirma
-que ese nombre/modelo esté aprobado. Antes de desplegar se debe reemplazar/ajustar el mapeo y agregar la migración
-versionada acordada para el esquema de autenticación. Hibernate valida el esquema (`ddl-auto=validate`).
+Flyway crea el esquema con `db/migration/V1__create_auth_schema.sql` (tablas `users`, `regions`, `communes`,
+`roles`, `refresh_token_families`, `refresh_tokens`, `csrf_contexts`, `csrf_tokens`) y siembra roles, regiones y
+comunas con `V2__seed_auth_reference_data.sql`. Hibernate valida el esquema (`ddl-auto=validate`).
+
+`Usuario` se mapea a `users`: el RUT se guarda normalizado sin puntos ni guion (`190110222`), el correo en
+minúsculas y la región se obtiene desde la comuna (`commune_id`). Las tablas de refresh tokens y CSRF ya existen,
+pero el servicio todavía no las usa.
 
 ## API
 
 - `POST /api/v1/auth/register`: crea cliente; requiere RUT válido, correo permitido (`duoc.cl`,
-  `profesor.duoc.cl`, `gmail.com`) y datos de despacho.
-- `POST /api/v1/auth/login`: devuelve `accessToken`, `expiresIn` y el perfil sin credenciales.
+  `profesor.duoc.cl`, `gmail.com`), región por código (`metropolitana`, `valparaiso`, `biobio`), una comuna de
+  esa región y dirección. Una comuna que no pertenece a la región responde `400 INVALID_COMMUNE`.
+- `POST /api/v1/auth/login`: devuelve `accessToken`, `expiresIn` y el perfil sin credenciales. Las cuentas
+  inactivas o anonimizadas no pueden iniciar sesión.
 - `GET /api/v1/health`, discovery OIDC y JWKS son públicos.
 
 El frontend actual guarda cuentas en session storage y no está conectado a este API; su integración es un cambio

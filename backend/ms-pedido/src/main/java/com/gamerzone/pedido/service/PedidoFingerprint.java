@@ -10,10 +10,11 @@ public final class PedidoFingerprint {
     private PedidoFingerprint() {
     }
 
-    public static String sha256(String address) {
+    /** SHA-256 en hexadecimal (64 caracteres), usado como huella de la cotización del carrito. */
+    public static String sha256(String value) {
         try {
             return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256")
-                    .digest(address.getBytes(StandardCharsets.UTF_8)));
+                    .digest(value.getBytes(StandardCharsets.UTF_8)));
         } catch (NoSuchAlgorithmException exception) {
             throw new IllegalStateException("SHA-256 no está disponible en esta JVM.", exception);
         }
