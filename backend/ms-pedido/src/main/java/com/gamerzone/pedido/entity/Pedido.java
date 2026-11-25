@@ -11,6 +11,7 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 import org.hibernate.annotations.JdbcTypeCode;
@@ -50,6 +51,9 @@ public class Pedido {
     @OneToMany(mappedBy = "pedido", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<PedidoItem> items = new ArrayList<>();
 
+    @OneToOne(mappedBy = "pedido", cascade = CascadeType.ALL, orphanRemoval = true)
+    private PedidoCouponSnapshot couponSnapshot;
+
     protected Pedido() {
     }
 
@@ -63,6 +67,13 @@ public class Pedido {
     public void addItem(PedidoItem item) {
         items.add(item);
         item.setPedido(this);
+    }
+
+    public void setCouponSnapshot(PedidoCouponSnapshot couponSnapshot) {
+        this.couponSnapshot = couponSnapshot;
+        if (couponSnapshot != null) {
+            couponSnapshot.setPedido(this);
+        }
     }
 
     @PrePersist
@@ -81,7 +92,14 @@ public class Pedido {
         for (PedidoItem item : items) {
             total = Math.addExact(total, item.getLineTotal());
         }
-        return total;
+        if (couponSnapshot == null) {
+            return total;
+        }
+        long discount = java.math.BigDecimal.valueOf(total)
+                .multiply(java.math.BigDecimal.valueOf(couponSnapshot.getDiscountPercent()))
+                .divide(java.math.BigDecimal.valueOf(100), 0, java.math.RoundingMode.HALF_UP)
+                .longValueExact();
+        return total - discount;
     }
 
     public String getId() { return id; }

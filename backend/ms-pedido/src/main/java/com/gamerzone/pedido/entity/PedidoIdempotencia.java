@@ -33,6 +33,10 @@ public class PedidoIdempotencia {
     @Column(name = "order_id", nullable = false, length = 36, columnDefinition = "CHAR(36)")
     private String orderId;
 
+    @JdbcTypeCode(SqlTypes.CHAR)
+    @Column(name = "reservation_id", length = 36, columnDefinition = "CHAR(36)")
+    private String reservationId;
+
     @Column(name = "created_at", nullable = false, insertable = false, updatable = false)
     private LocalDateTime createdAt;
 
@@ -41,10 +45,16 @@ public class PedidoIdempotencia {
 
     public PedidoIdempotencia(String customerId, String idempotencyKey, long cartVersion,
             String cartFingerprint, String orderId) {
+        this(customerId, idempotencyKey, cartVersion, cartFingerprint, orderId, null);
+    }
+
+    public PedidoIdempotencia(String customerId, String idempotencyKey, long cartVersion,
+            String cartFingerprint, String orderId, String reservationId) {
         this.id = new PedidoIdempotenciaId(customerId, idempotencyKey);
         this.cartVersion = cartVersion;
         this.cartFingerprint = cartFingerprint;
         this.orderId = orderId;
+        this.reservationId = reservationId;
     }
 
     /** {@code true} si el reintento trae la misma versión del carrito y la misma cotización. */
@@ -56,5 +66,6 @@ public class PedidoIdempotencia {
     public Long getCartVersion() { return cartVersion; }
     public String getCartFingerprint() { return cartFingerprint; }
     public String getOrderId() { return orderId; }
+    public String getReservationId() { return reservationId; }
     public LocalDateTime getCreatedAt() { return createdAt; }
 }

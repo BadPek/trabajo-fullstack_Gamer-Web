@@ -99,7 +99,7 @@ public class GlobalExceptionHandler {
                 ? "FEATURE_NOT_IMPLEMENTED"
                 : status.value() == HttpStatus.NOT_FOUND.value() ? "RESOURCE_NOT_FOUND" : "REQUEST_ERROR";
         String detail = status.value() == HttpStatus.NOT_IMPLEMENTED.value()
-                ? "La operación depende de la aprobación del modelo relacional."
+                ? "Esta operación no está disponible."
                 : status.value() == HttpStatus.NOT_FOUND.value()
                         ? "No se encontró el recurso solicitado."
                         : "No fue posible procesar la solicitud.";

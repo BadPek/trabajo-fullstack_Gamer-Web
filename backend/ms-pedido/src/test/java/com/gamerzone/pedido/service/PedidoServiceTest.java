@@ -14,8 +14,8 @@ import static org.mockito.Mockito.when;
 import java.util.List;
 import java.util.Optional;
 
-import com.gamerzone.pedido.dto.integration.CarritoResponse;
-import com.gamerzone.pedido.dto.integration.ProductoResponse;
+import com.gamerzone.pedido.dto.integration.QuoteValidationResponse;
+import com.gamerzone.pedido.dto.integration.ReservationResponse;
 import com.gamerzone.pedido.dto.request.CrearPedidoRequest;
 import com.gamerzone.pedido.entity.Pedido;
 import com.gamerzone.pedido.entity.PedidoIdempotencia;
@@ -97,13 +97,17 @@ class PedidoServiceTest {
     @Test
     void checkoutSnapshotsCatalogPricesAndStoresIdempotencyData() {
         when(idempotenciaRepository.findById(new PedidoIdempotenciaId(CLIENTE, CLAVE))).thenReturn(Optional.empty());
-        when(carritoClient.getCurrentCart("jwt"))
-                .thenReturn(new CarritoResponse(List.of(
-                        new CarritoResponse.ItemCarrito("line-1", PRODUCTO_1, 2),
-                        new CarritoResponse.ItemCarrito("line-2", PRODUCTO_2, 1))));
-        when(catalogoClient.findProduct(PRODUCTO_1)).thenReturn(new ProductoResponse(PRODUCTO_1, "Juego Uno", 1000));
-        when(catalogoClient.findProduct(PRODUCTO_2)).thenReturn(new ProductoResponse(PRODUCTO_2, "Juego Dos", 500));
-        when(pedidoWriter.save(any(Pedido.class), anyString(), anyLong(), anyString()))
+        when(carritoClient.validateQuote("jwt", 7L, "cotizacion-1"))
+                .thenReturn(new QuoteValidationResponse(
+                        7L,
+                        null,
+                        List.of(
+                                new QuoteValidationResponse.QuoteItemSnapshot(PRODUCTO_1, 2, "Juego Uno", 1000),
+                                new QuoteValidationResponse.QuoteItemSnapshot(PRODUCTO_2, 1, "Juego Dos", 500)),
+                        null));
+        when(carritoClient.createReservation("jwt", 7L, CLAVE))
+                .thenReturn(new ReservationResponse("reservation-1", 7L, "ACTIVE", null));
+        when(pedidoWriter.save(any(Pedido.class), anyString(), anyLong(), anyString(), anyString()))
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
         // La clave llega en mayúsculas y se guarda normalizada en minúsculas.
@@ -119,7 +123,10 @@ class PedidoServiceTest {
         assertEquals(PRODUCTO_1, response.items().get(0).productoId());
 
         ArgumentCaptor<Pedido> saved = ArgumentCaptor.forClass(Pedido.class);
-        verify(pedidoWriter).save(saved.capture(), eq(CLAVE), eq(7L), eq(PedidoFingerprint.sha256("cotizacion-1")));
+        verify(pedidoWriter).save(saved.capture(), eq(CLAVE), eq(7L),
+                eq(PedidoFingerprint.sha256("cotizacion-1")), eq("reservation-1"));
+        verify(carritoClient).consumeQuote("jwt", 7L, "cotizacion-1");
+        verify(carritoClient).completeReservation("jwt", "reservation-1");
         assertEquals(CLIENTE, saved.getValue().getCustomerId());
         assertEquals(1, saved.getValue().getPricingPolicyVersion());
         assertEquals(2, saved.getValue().getItems().size());
@@ -128,13 +135,67 @@ class PedidoServiceTest {
     @Test
     void emptyCartIsRejectedWithoutSavingAnOrder() {
         when(idempotenciaRepository.findById(new PedidoIdempotenciaId(CLIENTE, CLAVE))).thenReturn(Optional.empty());
-        when(carritoClient.getCurrentCart("jwt")).thenReturn(new CarritoResponse(List.of()));
+        when(carritoClient.validateQuote("jwt", 7L, "cotizacion-1"))
+                .thenReturn(new QuoteValidationResponse(7L, null, List.of(), null));
 
         ApiException error = assertThrows(ApiException.class, () -> service.create(
                 CLIENTE, "jwt", CLAVE, new CrearPedidoRequest(7L, "cotizacion-1")));
 
         assertEquals("EMPTY_CART", error.code());
-        verify(pedidoWriter, never()).save(any(Pedido.class), anyString(), anyLong(), anyString());
+        verify(pedidoWriter, never()).save(
+                any(Pedido.class), anyString(), anyLong(), anyString(), anyString());
+    }
+
+    @Test
+    void couponSnapshotDiscountIsRoundedFromQuoteSubtotal() {
+        when(idempotenciaRepository.findById(new PedidoIdempotenciaId(CLIENTE, CLAVE)))
+                .thenReturn(Optional.empty());
+        when(carritoClient.validateQuote("jwt", 7L, "cotizacion-1"))
+                .thenReturn(new QuoteValidationResponse(
+                        7L,
+                        null,
+                        List.of(new QuoteValidationResponse.QuoteItemSnapshot(
+                                PRODUCTO_1, 1, "Juego Uno", 25990)),
+                        new QuoteValidationResponse.QuoteCouponSnapshot("GAMER10", 10)));
+        when(carritoClient.createReservation("jwt", 7L, CLAVE))
+                .thenReturn(new ReservationResponse("reservation-1", 7L, "ACTIVE", null));
+        when(pedidoWriter.save(any(Pedido.class), anyString(), anyLong(), anyString(), anyString()))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+        var response = service.create(
+                CLIENTE, "jwt", CLAVE, new CrearPedidoRequest(7L, "cotizacion-1"));
+
+        assertEquals(23391, response.total());
+    }
+
+    @Test
+    void confirmationFailurePreservesSavedOrder() {
+        when(idempotenciaRepository.findById(new PedidoIdempotenciaId(CLIENTE, CLAVE)))
+                .thenReturn(Optional.empty());
+        when(carritoClient.validateQuote("jwt", 7L, "cotizacion-1"))
+                .thenReturn(new QuoteValidationResponse(
+                        7L,
+                        null,
+                        List.of(new QuoteValidationResponse.QuoteItemSnapshot(
+                                PRODUCTO_1, 1, "Juego Uno", 1000)),
+                        null));
+        when(carritoClient.createReservation("jwt", 7L, CLAVE))
+                .thenReturn(new ReservationResponse("reservation-1", 7L, "ACTIVE", null));
+        when(pedidoWriter.save(any(Pedido.class), anyString(), anyLong(), anyString(), anyString()))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+        org.mockito.Mockito.doThrow(new ApiException(
+                org.springframework.http.HttpStatus.GONE,
+                "RESERVATION_EXPIRED",
+                "La reserva expiró"))
+                .when(carritoClient).completeReservation("jwt", "reservation-1");
+
+        assertThrows(ApiException.class, () -> service.create(
+                CLIENTE, "jwt", CLAVE, new CrearPedidoRequest(7L, "cotizacion-1")));
+
+        verify(pedidoWriter).save(
+                any(Pedido.class), eq(CLAVE), eq(7L),
+                eq(PedidoFingerprint.sha256("cotizacion-1")), eq("reservation-1"));
+        verify(carritoClient, never()).releaseReservation("jwt", "reservation-1");
     }
 
     private static Pedido storedOrder() {

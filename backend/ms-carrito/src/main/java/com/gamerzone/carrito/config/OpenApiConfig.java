@@ -11,8 +11,7 @@ import org.springframework.context.annotation.Configuration;
         info = @Info(
                 title = "GamerZone - Microservicio Carrito",
                 version = "v1",
-                description = "Administra las operaciones del carrito de compras. Los contratos son provisionales; "
-                        + "las operaciones dependen del modelo relacional oficial y actualmente responden HTTP 501."))
+                description = "Administra las operaciones del carrito de compras de clientes autenticados."))
 @SecurityScheme(
         name = "bearerAuth",
         type = SecuritySchemeType.HTTP,

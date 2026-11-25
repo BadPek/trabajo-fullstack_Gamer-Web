@@ -11,9 +11,7 @@ import org.springframework.context.annotation.Configuration;
         info = @Info(
                 title = "GamerZone ms-contacto API",
                 version = "v1",
-                description = "Recepción y administración de mensajes de contacto. "
-                        + "Las operaciones de persistencia estarán disponibles al aprobar e integrar "
-                        + "el modelo relacional del servicio."))
+                        description = "Recepción y administración de mensajes de contacto."))
 @SecurityScheme(
         name = "bearerAuth",
         type = SecuritySchemeType.HTTP,

@@ -21,9 +21,15 @@ public class PedidoWriter {
 
     @Transactional
     public Pedido save(Pedido pedido, String idempotencyKey, long cartVersion, String cartFingerprint) {
+        return save(pedido, idempotencyKey, cartVersion, cartFingerprint, null);
+    }
+
+    @Transactional
+    public Pedido save(Pedido pedido, String idempotencyKey, long cartVersion,
+            String cartFingerprint, String reservationId) {
         Pedido saved = pedidoRepository.saveAndFlush(pedido);
         idempotenciaRepository.saveAndFlush(new PedidoIdempotencia(saved.getCustomerId(), idempotencyKey,
-                cartVersion, cartFingerprint, saved.getId()));
+                cartVersion, cartFingerprint, saved.getId(), reservationId));
         return saved;
     }
 }

@@ -1,13 +1,9 @@
 package com.gamerzone.pedido.service;
 
 import java.time.ZoneOffset;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 
-import com.gamerzone.pedido.dto.integration.CarritoResponse;
-import com.gamerzone.pedido.dto.integration.ProductoResponse;
 import com.gamerzone.pedido.dto.request.CrearPedidoRequest;
 import com.gamerzone.pedido.dto.response.ItemPedidoResponse;
 import com.gamerzone.pedido.dto.response.PedidoResponse;
@@ -15,7 +11,10 @@ import com.gamerzone.pedido.entity.Pedido;
 import com.gamerzone.pedido.entity.PedidoIdempotencia;
 import com.gamerzone.pedido.entity.PedidoIdempotenciaId;
 import com.gamerzone.pedido.entity.PedidoItem;
+import com.gamerzone.pedido.entity.PedidoCouponSnapshot;
+import com.gamerzone.pedido.dto.integration.QuoteValidationResponse;
 import com.gamerzone.pedido.exception.ApiException;
+import com.gamerzone.pedido.exception.ExternalDependencyException;
 import com.gamerzone.pedido.integration.CarritoClient;
 import com.gamerzone.pedido.integration.CatalogoClient;
 import com.gamerzone.pedido.repository.PedidoIdempotenciaRepository;
@@ -55,46 +54,76 @@ public class PedidoService {
 
         var existing = idempotenciaRepository.findById(idempotenciaId);
         if (existing.isPresent()) {
-            return replay(existing.get(), customerId, cartVersion, fingerprint);
+            return replay(existing.get(), customerId, cartVersion, fingerprint, bearerToken);
         }
 
-        CarritoResponse cart = carritoClient.getCurrentCart(bearerToken);
-        if (cart.items().isEmpty()) {
+        QuoteValidationResponse quote = carritoClient.validateQuote(
+                bearerToken, cartVersion, request.priceQuoteToken().trim());
+        if (quote == null || quote.items() == null || quote.items().isEmpty()) {
             throw new ApiException(HttpStatus.UNPROCESSABLE_CONTENT, "EMPTY_CART",
                     "No se puede crear un pedido con el carrito vacío.");
         }
-        Map<String, ProductoResponse> products = new LinkedHashMap<>();
-        for (CarritoResponse.ItemCarrito cartItem : cart.items()) {
-            if (cartItem == null || cartItem.productoId() == null || cartItem.productoId().isBlank()
-                    || cartItem.cantidad() == null || cartItem.cantidad() < 1
-                    || cartItem.cantidad() > CANTIDAD_MAXIMA) {
+        for (QuoteValidationResponse.QuoteItemSnapshot cartItem : quote.items()) {
+            if (cartItem == null || cartItem.productId() == null || cartItem.productId().isBlank()
+                    || cartItem.quantity() < 1 || cartItem.quantity() > CANTIDAD_MAXIMA
+                    || cartItem.titleSnapshot() == null || cartItem.titleSnapshot().isBlank()
+                    || cartItem.unitPriceClp() <= 0) {
                 throw new ApiException(HttpStatus.BAD_GATEWAY, "INVALID_CART_ITEM",
                         "ms-carrito devolvió un elemento inválido.");
-            }
-            ProductoResponse product = products.computeIfAbsent(
-                    cartItem.productoId(), catalogoClient::findProduct);
-            if (product == null || product.id() == null || product.precio() == null || product.precio() <= 0
-                    || product.titulo() == null || product.titulo().isBlank()) {
-                throw new ApiException(HttpStatus.BAD_GATEWAY, "INVALID_PRODUCT_PRICE",
-                        "ms-catalogo devolvió datos de producto inválidos.");
             }
         }
 
         Pedido pedido = new Pedido(customerId);
-        for (CarritoResponse.ItemCarrito cartItem : cart.items()) {
-            ProductoResponse product = products.get(cartItem.productoId());
-            pedido.addItem(new PedidoItem(product.id(), product.titulo().trim(),
-                    cartItem.cantidad(), product.precio()));
+        for (QuoteValidationResponse.QuoteItemSnapshot cartItem : quote.items()) {
+            pedido.addItem(new PedidoItem(
+                    cartItem.productId(),
+                    cartItem.titleSnapshot().trim(),
+                    cartItem.quantity(),
+                    cartItem.unitPriceClp()));
         }
+        if (quote.couponSnapshot() != null) {
+            pedido.setCouponSnapshot(new PedidoCouponSnapshot(
+                    pedido,
+                    quote.couponSnapshot().code(),
+                    quote.couponSnapshot().discountPercent()));
+        }
+
+        var reservation = carritoClient.createReservation(
+                bearerToken, cartVersion, idempotencyKey);
+        String reservationId = reservation.reservationId();
+        Pedido saved;
         try {
-            return toResponse(pedidoWriter.save(pedido, key, cartVersion, fingerprint));
+            saved = pedidoWriter.save(
+                    pedido, key, cartVersion, fingerprint, reservationId);
         } catch (DataIntegrityViolationException exception) {
             var concurrentRequest = idempotenciaRepository.findById(idempotenciaId);
             if (concurrentRequest.isEmpty()) {
+                try {
+                    carritoClient.releaseReservation(bearerToken, reservationId);
+                } catch (RuntimeException releaseException) {
+                    exception.addSuppressed(releaseException);
+                }
                 throw exception;
             }
-            return replay(concurrentRequest.get(), customerId, cartVersion, fingerprint);
+            return replay(concurrentRequest.get(), customerId, cartVersion, fingerprint, bearerToken);
+        } catch (ApiException | ExternalDependencyException exception) {
+            try {
+                carritoClient.releaseReservation(bearerToken, reservationId);
+            } catch (RuntimeException releaseException) {
+                exception.addSuppressed(releaseException);
+            }
+            throw exception;
+        } catch (RuntimeException exception) {
+            try {
+                carritoClient.releaseReservation(bearerToken, reservationId);
+            } catch (RuntimeException releaseException) {
+                exception.addSuppressed(releaseException);
+            }
+            throw exception;
         }
+        carritoClient.consumeQuote(bearerToken, cartVersion, request.priceQuoteToken().trim());
+        carritoClient.completeReservation(bearerToken, reservationId);
+        return toResponse(saved);
     }
 
     @Transactional(readOnly = true)
@@ -113,10 +142,13 @@ public class PedidoService {
 
     /** Reintento con una clave ya usada: misma versión y cotización devuelven el pedido original. */
     private PedidoResponse replay(PedidoIdempotencia registro, String customerId, long cartVersion,
-            String fingerprint) {
+            String fingerprint, String bearerToken) {
         if (!registro.matches(cartVersion, fingerprint)) {
             throw new ApiException(HttpStatus.CONFLICT, "IDEMPOTENCY_KEY_REUSED",
                     "La clave de idempotencia ya se usó con otra versión del carrito o cotización.");
+        }
+        if (registro.getReservationId() != null && !registro.getReservationId().isBlank()) {
+            carritoClient.completeReservation(bearerToken, registro.getReservationId());
         }
         return pedidoRepository.findByIdAndCustomerId(registro.getOrderId(), customerId)
                 .map(PedidoService::toResponse)
