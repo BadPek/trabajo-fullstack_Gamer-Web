@@ -2,14 +2,14 @@ package com.gamerzone.carrito.dto.response;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
-@Schema(description = "Representación provisional de un elemento del carrito.")
+@Schema(description = "Artículo de producto en el carrito.")
 public record ItemCarritoResponse(
-        @Schema(description = "Identificador derivado del elemento.")
-        String id,
         @Schema(description = "Identificador UUID del producto.")
-        String productoId,
+        String productId,
         @Schema(description = "Título del producto.")
         String titulo,
+        @Schema(description = "Imagen de portada del producto.")
+        String imagen,
         @Schema(description = "Precio unitario en pesos chilenos.")
         Long precioUnitario,
         @Schema(description = "Cantidad solicitada.")

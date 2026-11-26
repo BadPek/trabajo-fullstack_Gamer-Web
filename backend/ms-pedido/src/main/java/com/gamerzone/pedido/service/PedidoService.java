@@ -1,11 +1,14 @@
 package com.gamerzone.pedido.service;
 
 import java.time.ZoneOffset;
-import java.util.List;
+import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.Locale;
+import java.util.List;
 
 import com.gamerzone.pedido.dto.request.CrearPedidoRequest;
 import com.gamerzone.pedido.dto.response.ItemPedidoResponse;
+import com.gamerzone.pedido.dto.response.PageResponse;
 import com.gamerzone.pedido.dto.response.PedidoResponse;
 import com.gamerzone.pedido.entity.Pedido;
 import com.gamerzone.pedido.entity.PedidoIdempotencia;
@@ -20,6 +23,9 @@ import com.gamerzone.pedido.integration.CatalogoClient;
 import com.gamerzone.pedido.repository.PedidoIdempotenciaRepository;
 import com.gamerzone.pedido.repository.PedidoRepository;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -127,14 +133,38 @@ public class PedidoService {
     }
 
     @Transactional(readOnly = true)
-    public List<PedidoResponse> findMine(String customerId) {
-        return pedidoRepository.findByCustomerIdOrderByCreatedAtDesc(customerId).stream()
-                .map(PedidoService::toResponse).toList();
+    public PageResponse<PedidoResponse> findMine(String customerId, int page, int size) {
+        var pageable = PageRequest.of(page, size, orderSort());
+        return PageResponse.from(pedidoRepository.findByCustomerId(customerId, pageable)
+                .map(PedidoService::toResponse));
     }
 
     @Transactional(readOnly = true)
-    public PedidoResponse findMineById(String id, String customerId) {
-        return pedidoRepository.findByIdAndCustomerId(id, customerId)
+    public PageResponse<PedidoResponse> findAll(
+            int page, int size, String status, OffsetDateTime from, OffsetDateTime to) {
+        Specification<Pedido> specification = (root, query, criteriaBuilder) -> criteriaBuilder.conjunction();
+        if (status != null) {
+            specification = specification.and((root, query, criteriaBuilder) ->
+                    criteriaBuilder.equal(root.get("status"), status));
+        }
+        if (from != null) {
+            var fromUtc = from.withOffsetSameInstant(ZoneOffset.UTC).toLocalDateTime();
+            specification = specification.and((root, query, criteriaBuilder) ->
+                    criteriaBuilder.greaterThanOrEqualTo(root.<LocalDateTime>get("createdAt"), fromUtc));
+        }
+        if (to != null) {
+            var toUtc = to.withOffsetSameInstant(ZoneOffset.UTC).toLocalDateTime();
+            specification = specification.and((root, query, criteriaBuilder) ->
+                    criteriaBuilder.lessThanOrEqualTo(root.<LocalDateTime>get("createdAt"), toUtc));
+        }
+        var pageable = PageRequest.of(page, size, orderSort());
+        return PageResponse.from(pedidoRepository.findAll(specification, pageable)
+                .map(PedidoService::toResponse));
+    }
+
+    @Transactional(readOnly = true)
+    public PedidoResponse findById(String id) {
+        return pedidoRepository.findById(id)
                 .map(PedidoService::toResponse)
                 .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "ORDER_NOT_FOUND",
                         "No se encontró el pedido solicitado."));
@@ -163,5 +193,9 @@ public class PedidoService {
                 .toList();
         return new PedidoResponse(pedido.getId(), pedido.getStatus(), MONEDA, pedido.getTotal(),
                 pedido.getCreatedAt() == null ? null : pedido.getCreatedAt().toInstant(ZoneOffset.UTC), items);
+    }
+
+    private static Sort orderSort() {
+        return Sort.by(Sort.Order.desc("createdAt"), Sort.Order.asc("id"));
     }
 }

@@ -32,6 +32,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.test.util.ReflectionTestUtils;
 
 @ExtendWith(MockitoExtension.class)
@@ -166,6 +170,21 @@ class PedidoServiceTest {
                 CLIENTE, "jwt", CLAVE, new CrearPedidoRequest(7L, "cotizacion-1"));
 
         assertEquals(23391, response.total());
+    }
+
+    @Test
+    void adminOrderListingReturnsContractPagination() {
+        when(pedidoRepository.findAll(any(Specification.class), any(Pageable.class)))
+                .thenReturn(new PageImpl<>(List.of(storedOrder()), PageRequest.of(0, 20), 1));
+
+        var response = service.findAll(0, 20, "REGISTRADO_SIN_PAGO", null, null);
+
+        assertEquals(1, response.content().size());
+        assertEquals(0, response.page());
+        assertEquals(20, response.size());
+        assertEquals(1, response.totalElements());
+        assertEquals(1, response.totalPages());
+        assertEquals(PEDIDO_ID, response.content().get(0).id());
     }
 
     @Test

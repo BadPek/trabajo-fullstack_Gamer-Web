@@ -1,0 +1,16 @@
+services:
+  oracle-test:
+    image: container-registry.oracle.com/database/express:21.3.0-xe
+    container_name: gamerzone-oracle-test
+    environment:
+      ORACLE_PWD: ${ORACLE_PWD:?Set ORACLE_PWD in the ignored .env file}
+    env_file:
+      - .env
+    ports:
+      - "127.0.0.1:1522:1521"
+    volumes:
+      - oracle_test_data:/opt/oracle/oradata
+      - ./test-schemas.sh:/opt/oracle/scripts/setup/01_test_schemas.sh:ro
+
+volumes:
+  oracle_test_data:

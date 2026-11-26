@@ -8,12 +8,15 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.MapsId;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 @Entity
 @Table(name = "cart_quote_coupon_snapshots")
 public class CartQuoteCouponSnapshotEntity {
 
     @Id
+    @JdbcTypeCode(SqlTypes.CHAR)
     @Column(name = "quote_id", nullable = false, length = 36, columnDefinition = "CHAR(36)")
     private String quoteId;
 

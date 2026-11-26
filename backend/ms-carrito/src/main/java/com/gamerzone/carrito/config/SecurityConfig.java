@@ -41,7 +41,7 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET, "/api/v1/health", "/actuator/health").permitAll()
                 .requestMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**", "/v3/api-docs.yaml")
                     .permitAll()
-                .requestMatchers("/api/v1/carrito", "/api/v1/carrito/**").hasRole("CLIENTE")
+                .requestMatchers("/api/v1/cart", "/api/v1/cart/**").hasRole("CLIENTE")
                 .anyRequest().denyAll()
             )
             .exceptionHandling(exceptions -> exceptions

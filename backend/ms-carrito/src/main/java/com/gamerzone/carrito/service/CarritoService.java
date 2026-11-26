@@ -10,6 +10,7 @@ import com.gamerzone.carrito.dto.request.AplicarCuponRequest;
 import com.gamerzone.carrito.dto.request.AgregarProductoRequest;
 import com.gamerzone.carrito.dto.request.ActualizarCantidadRequest;
 import com.gamerzone.carrito.dto.response.CarritoResponse;
+import com.gamerzone.carrito.dto.response.CartCouponResponse;
 import com.gamerzone.carrito.dto.response.CouponCalculationResponse;
 import com.gamerzone.carrito.dto.response.ItemCarritoResponse;
 import com.gamerzone.carrito.entity.Cart;
@@ -44,16 +45,18 @@ public class CarritoService {
         this.couponRepository = couponRepository;
     }
 
-    @Transactional
+    @Transactional(readOnly = true)
     public CarritoResponse findCart(String customerId) {
-        Cart cart = findOrCreateCart(customerId);
-        return toResponse(cart);
+        String normalizedUserId = normalizeUuid(customerId);
+        return cartRepository.findFirstByUserIdAndStatus(normalizedUserId, Cart.STATUS_ACTIVE)
+                .map(this::toResponse)
+                .orElseGet(CarritoService::emptyCartResponse);
     }
 
     @Transactional
     public ItemCarritoResponse addItem(String customerId, AgregarProductoRequest request) {
         Cart cart = findOrCreateCart(customerId);
-        String productId = normalizeUuid(request.productoId());
+        String productId = normalizeUuid(request.productId());
         CatalogoProductResponse product = catalogoClient.findProduct(productId);
         if (product == null) {
             throw new ResponseStatusException(HttpStatus.BAD_GATEWAY,
@@ -66,8 +69,8 @@ public class CarritoService {
                 .orElse(null);
 
         int newQuantity = existing == null
-                ? request.cantidad()
-                : existing.getQuantity() + request.cantidad();
+                ? request.quantity()
+                : existing.getQuantity() + request.quantity();
         if (newQuantity > CANTIDAD_MAXIMA) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
                     "La cantidad máxima por producto es 99.");
@@ -82,7 +85,7 @@ public class CarritoService {
         }
 
         if (existing == null) {
-            existing = new CartItem(productId, request.cantidad());
+            existing = new CartItem(productId, request.quantity());
             cart.addItem(existing);
         } else {
             existing.setQuantity(newQuantity);
@@ -104,16 +107,16 @@ public class CarritoService {
                         HttpStatus.NOT_FOUND,
                         "El producto no existe en el carrito."));
 
-        if (request.cantidad() > CANTIDAD_MAXIMA) {
+        if (request.quantity() > CANTIDAD_MAXIMA) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
                     "La cantidad máxima por producto es 99.");
         }
-        if (totalUnits(cart, item, request.cantidad()) > UNIDADES_MAXIMAS) {
+        if (totalUnits(cart, item, request.quantity()) > UNIDADES_MAXIMAS) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
                     "El carrito admite como máximo 500 unidades.");
         }
 
-        item.setQuantity(request.cantidad());
+        item.setQuantity(request.quantity());
         cart.incrementVersion();
         cartRepository.saveAndFlush(cart);
         CatalogoProductResponse product = catalogoClient.findProduct(productId);
@@ -245,7 +248,27 @@ public class CarritoService {
                     .longValueExact();
         }
         long totalClp = subtotalClp - discountClp;
-        return new CarritoResponse(items, subtotalClp, discountClp, totalClp);
+        CartCouponResponse coupon = cart.getCoupon() == null
+                ? null
+                : new CartCouponResponse(
+                        cart.getCoupon().getCode(),
+                        cart.getCoupon().getDiscountPercent());
+        long includedVat = BigDecimal.valueOf(totalClp)
+                .multiply(BigDecimal.valueOf(19))
+                .divide(BigDecimal.valueOf(119), 0, RoundingMode.HALF_UP)
+                .longValueExact();
+        return new CarritoResponse(
+                cart.getVersion(),
+                items,
+                coupon,
+                subtotalClp,
+                discountClp,
+                includedVat,
+                totalClp);
+    }
+
+    private static CarritoResponse emptyCartResponse() {
+        return new CarritoResponse(0, List.of(), null, 0L, 0L, 0L, 0L);
     }
 
     private static ItemCarritoResponse toItemResponse(
@@ -257,8 +280,8 @@ public class CarritoService {
                 .longValueExact();
         return new ItemCarritoResponse(
                 item.getProductId(),
-                item.getProductId(),
                 product.titulo(),
+                product.imagen(),
                 (long) product.precio(),
                 item.getQuantity(),
                 subtotal);

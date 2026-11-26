@@ -38,12 +38,12 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable())
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers(HttpMethod.POST, "/api/v1/contactos").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/v1/contact-messages").permitAll()
                 .requestMatchers(HttpMethod.GET,
                         "/api/v1/health", "/actuator/health",
                         "/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**", "/v3/api-docs.yaml")
                     .permitAll()
-                .requestMatchers("/api/v1/contactos", "/api/v1/contactos/**")
+                .requestMatchers("/api/v1/admin/contact-messages", "/api/v1/admin/contact-messages/**")
                     .hasRole("ADMINISTRADOR")
                 .anyRequest().denyAll()
             )

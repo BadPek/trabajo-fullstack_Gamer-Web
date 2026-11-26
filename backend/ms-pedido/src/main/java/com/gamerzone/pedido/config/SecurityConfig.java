@@ -38,7 +38,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/v1/health", "/actuator/health",
                                 "/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**", "/v3/api-docs.yaml")
                         .permitAll()
-                        .requestMatchers("/api/v1/pedidos", "/api/v1/pedidos/**").hasRole("CLIENTE")
+                        .requestMatchers("/api/v1/admin/orders", "/api/v1/admin/orders/**").hasRole("ADMINISTRADOR")
+                        .requestMatchers("/api/v1/orders", "/api/v1/orders/**").hasRole("CLIENTE")
                         .anyRequest().denyAll())
                 .exceptionHandling(errors -> errors.authenticationEntryPoint(entryPoint).accessDeniedHandler(deniedHandler))
                 .formLogin(form -> form.disable())
@@ -76,7 +77,7 @@ public class SecurityConfig {
         return (request, response, exception) -> {
             response.setHeader(HttpHeaders.WWW_AUTHENTICATE, "Bearer error=\"insufficient_scope\"");
             writeSecurityError(mapper, request, response, HttpStatus.FORBIDDEN, "Acceso denegado", "FORBIDDEN",
-                    "Se requiere el rol CLIENTE.");
+                    "No tienes permisos para realizar esta operación.");
         };
     }
 

@@ -4,6 +4,12 @@ import java.util.List;
 
 public record CarritoResponse(List<ItemCarrito> items) {
 
-    public record ItemCarrito(String id, String productoId, Integer cantidad) {
+    public record ItemCarrito(
+            String productId,
+            String titulo,
+            String imagen,
+            Integer precioUnitario,
+            Integer cantidad,
+            Integer subtotal) {
     }
 }

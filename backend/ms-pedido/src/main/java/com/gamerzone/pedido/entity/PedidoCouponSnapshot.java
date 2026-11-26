@@ -7,12 +7,15 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.MapsId;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 @Entity
 @Table(name = "order_coupon_snapshots")
 public class PedidoCouponSnapshot {
 
     @Id
+    @JdbcTypeCode(SqlTypes.CHAR)
     @Column(name = "order_id", nullable = false, length = 36, columnDefinition = "CHAR(36)")
     private String orderId;
 

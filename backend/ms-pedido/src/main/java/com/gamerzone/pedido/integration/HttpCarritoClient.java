@@ -38,7 +38,7 @@ public class HttpCarritoClient implements CarritoClient {
     public CarritoResponse getCurrentCart(String bearerToken) {
         try {
             CarritoResponse cart = client.get()
-                    .uri("/api/v1/carrito")
+                    .uri("/api/v1/cart")
                     .headers(headers -> headers.setBearerAuth(bearerToken))
                     .retrieve()
                     .body(CarritoResponse.class);
@@ -58,7 +58,7 @@ public class HttpCarritoClient implements CarritoClient {
             String priceQuoteToken) {
         try {
             QuoteValidationResponse response = client.post()
-                    .uri("/api/v1/carrito/quotes/validate")
+                    .uri("/api/v1/cart/quotes/validate")
                     .headers(headers -> headers.setBearerAuth(bearerToken))
                     .body(Map.of(
                             "priceQuoteToken", priceQuoteToken,
@@ -97,7 +97,7 @@ public class HttpCarritoClient implements CarritoClient {
     public void consumeQuote(String bearerToken, long cartVersion, String priceQuoteToken) {
         try {
             client.post()
-                    .uri("/api/v1/carrito/quotes/consume")
+                    .uri("/api/v1/cart/quotes/consume")
                     .headers(headers -> headers.setBearerAuth(bearerToken))
                     .body(Map.of(
                             "priceQuoteToken", priceQuoteToken,
@@ -124,7 +124,7 @@ public class HttpCarritoClient implements CarritoClient {
             String idempotencyKey) {
         try {
             ReservationResponse response = client.post()
-                    .uri("/api/v1/carrito/reservations")
+                    .uri("/api/v1/cart/reservations")
                     .headers(headers -> headers.setBearerAuth(bearerToken))
                     .body(Map.of(
                             "cartVersion", cartVersion,
@@ -154,7 +154,7 @@ public class HttpCarritoClient implements CarritoClient {
     public ReservationResponse completeReservation(String bearerToken, String reservationId) {
         try {
             ReservationResponse response = client.patch()
-                    .uri("/api/v1/carrito/reservations/{id}/complete", reservationId)
+                    .uri("/api/v1/cart/reservations/{id}/complete", reservationId)
                     .headers(headers -> headers.setBearerAuth(bearerToken))
                     .retrieve()
                     .body(ReservationResponse.class);
@@ -183,7 +183,7 @@ public class HttpCarritoClient implements CarritoClient {
     public void releaseReservation(String bearerToken, String reservationId) {
         try {
             client.delete()
-                    .uri("/api/v1/carrito/reservations/{id}", reservationId)
+                    .uri("/api/v1/cart/reservations/{id}", reservationId)
                     .headers(headers -> headers.setBearerAuth(bearerToken))
                     .retrieve()
                     .toBodilessEntity();

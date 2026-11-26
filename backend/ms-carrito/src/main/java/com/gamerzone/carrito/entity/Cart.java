@@ -31,11 +31,8 @@ public class Cart {
     private String id;
 
     @JdbcTypeCode(SqlTypes.CHAR)
-    @Column(name = "user_id", length = 36, columnDefinition = "CHAR(36)")
+    @Column(name = "user_id", nullable = false, length = 36, columnDefinition = "CHAR(36)")
     private String userId;
-
-    @Column(name = "guest_token_hash", length = 64)
-    private String guestTokenHash;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "coupon_id")
@@ -98,7 +95,6 @@ public class Cart {
 
     public String getId() { return id; }
     public String getUserId() { return userId; }
-    public String getGuestTokenHash() { return guestTokenHash; }
     public Coupon getCoupon() { return coupon; }
     public void setCoupon(Coupon coupon) { this.coupon = coupon; }
     public String getStatus() { return status; }

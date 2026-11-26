@@ -1,8 +1,11 @@
 package com.gamerzone.carrito.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -47,16 +50,18 @@ class CarritoServiceTest {
     }
 
     @Test
-    void findCartCreatesCartWhenUserHasNoActiveCart() {
-        when(cartRepository.findByUserIdAndStatus(USER_ID, Cart.STATUS_ACTIVE))
+    void findCartDoesNotPersistWhenUserHasNoActiveCart() {
+        when(cartRepository.findFirstByUserIdAndStatus(USER_ID, Cart.STATUS_ACTIVE))
                 .thenReturn(Optional.empty());
-        when(cartRepository.saveAndFlush(any(Cart.class)))
-                .thenAnswer(invocation -> invocation.getArgument(0));
 
         var response = service.findCart(USER_ID);
 
+        assertEquals(0, response.version());
         assertEquals(0, response.items().size());
-        verify(cartRepository).saveAndFlush(any(Cart.class));
+        assertNull(response.coupon());
+        assertEquals(0L, response.total());
+        verify(cartRepository, never()).saveAndFlush(any(Cart.class));
+        verifyNoInteractions(catalogoClient);
     }
 
     @Test
@@ -151,21 +156,28 @@ class CarritoServiceTest {
         Cart cart = new Cart(USER_ID);
         cart.addItem(new CartItem(PRODUCT_ID, 2));
         Coupon coupon = org.mockito.Mockito.mock(Coupon.class);
+        when(coupon.getCode()).thenReturn("GAMER10");
         when(coupon.getDiscountPercent()).thenReturn(10);
         cart.setCoupon(coupon);
-        when(cartRepository.findByUserIdAndStatus(USER_ID, Cart.STATUS_ACTIVE))
+        when(cartRepository.findFirstByUserIdAndStatus(USER_ID, Cart.STATUS_ACTIVE))
                 .thenReturn(Optional.of(cart));
         when(catalogoClient.findProduct(PRODUCT_ID))
-                .thenReturn(new CatalogoProductResponse(PRODUCT_ID, "Juego Uno", 25990));
+                .thenReturn(new CatalogoProductResponse(
+                        PRODUCT_ID, "Juego Uno", 25990, "src/img/juego-uno.jpg"));
 
         var response = service.findCart(USER_ID);
 
         assertEquals("Juego Uno", response.items().get(0).titulo());
+        assertEquals(PRODUCT_ID, response.items().get(0).productId());
+        assertEquals("src/img/juego-uno.jpg", response.items().get(0).imagen());
         assertEquals(25990L, response.items().get(0).precioUnitario());
         assertEquals(2, response.items().get(0).cantidad());
         assertEquals(51980L, response.items().get(0).subtotal());
         assertEquals(51980L, response.subtotal());
-        assertEquals(5198L, response.descuento());
+        assertEquals(5198L, response.discountAmount());
+        assertEquals(7469L, response.includedVat());
         assertEquals(46782L, response.total());
+        assertEquals(0L, response.version());
+        assertEquals("GAMER10", response.coupon().code());
     }
 }

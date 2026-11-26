@@ -43,8 +43,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 @Validated
 @RestController
-@RequestMapping("/api/v1/carrito")
-@Tag(name = "Carrito", description = "Contratos provisionales para administrar el carrito del cliente.")
+@RequestMapping("/api/v1/cart")
+@Tag(name = "Carrito", description = "Administración del carrito de un cliente autenticado.")
 @SecurityRequirement(name = "bearerAuth")
 public class CarritoController {
 
@@ -95,7 +95,7 @@ public class CarritoController {
         return ResponseEntity.status(HttpStatus.CREATED).body(item);
     }
 
-    @PutMapping("/items/{id}")
+    @PatchMapping("/items/{productId}")
     @Operation(summary = "Modificar la cantidad de un producto")
     @ApiResponses({
             @ApiResponse(responseCode = "200",
@@ -110,15 +110,15 @@ public class CarritoController {
     })
     public ItemCarritoResponse updateItem(
             @AuthenticationPrincipal Jwt jwt,
-            @Parameter(description = "Identificador opaco del elemento, según el contrato provisional.")
-            @PathVariable @NotBlank
+            @Parameter(description = "Identificador UUID del producto.")
+            @PathVariable("productId") @NotBlank
             @Pattern(regexp = "(?i)^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$")
-            String id,
+            String productId,
             @Valid @RequestBody ActualizarCantidadRequest request) {
-        return carritoService.updateItem(jwt.getSubject(), id, request);
+        return carritoService.updateItem(jwt.getSubject(), productId, request);
     }
 
-    @DeleteMapping("/items/{id}")
+    @DeleteMapping("/items/{productId}")
     @Operation(summary = "Eliminar un producto del carrito")
     @ApiResponses({
             @ApiResponse(responseCode = "204",
@@ -131,11 +131,11 @@ public class CarritoController {
     })
     public ResponseEntity<Void> removeItem(
             @AuthenticationPrincipal Jwt jwt,
-            @Parameter(description = "Identificador opaco del elemento, según el contrato provisional.")
-            @PathVariable @NotBlank
+            @Parameter(description = "Identificador UUID del producto.")
+            @PathVariable("productId") @NotBlank
             @Pattern(regexp = "(?i)^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$")
-            String id) {
-        carritoService.removeItem(jwt.getSubject(), id);
+            String productId) {
+        carritoService.removeItem(jwt.getSubject(), productId);
         return ResponseEntity.noContent().build();
     }
 
@@ -152,7 +152,7 @@ public class CarritoController {
         return ResponseEntity.noContent().build();
     }
 
-    @PostMapping("/coupon")
+    @PutMapping("/coupon")
     @Operation(summary = "Aplicar un cupón al carrito")
     @ApiResponses({
             @ApiResponse(responseCode = "200",

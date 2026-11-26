@@ -9,6 +9,8 @@ import org.springframework.data.jpa.repository.Lock;
 
 public interface CartRepository extends JpaRepository<Cart, String> {
 
+    Optional<Cart> findFirstByUserIdAndStatus(String userId, String status);
+
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     Optional<Cart> findByUserIdAndStatus(String userId, String status);
 }

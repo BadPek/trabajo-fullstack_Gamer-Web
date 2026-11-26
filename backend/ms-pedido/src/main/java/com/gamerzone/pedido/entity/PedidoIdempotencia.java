@@ -10,7 +10,7 @@ import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
 /**
- * Registro de idempotencia de {@code POST /api/v1/pedidos} (tabla {@code order_idempotency}).
+ * Registro de idempotencia de {@code POST /api/v1/orders} (tabla {@code order_idempotency}).
  *
  * <p>Una clave por cliente y un pedido por clave. Un reintento con la misma versión del carrito y
  * la misma cotización devuelve el pedido original; con otros datos se rechaza con 409.</p>
