@@ -119,4 +119,11 @@ class ContactoServiceTest {
         verify(repository).delete(message);
         verify(repository).flush();
     }
+
+    @Test
+    void deletesAllContactMessagesForAnonymizedAccount() {
+        service.deleteForUser(USER_ID.toUpperCase());
+
+        verify(repository).deleteByUserId(USER_ID);
+    }
 }

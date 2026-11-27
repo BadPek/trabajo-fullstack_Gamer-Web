@@ -8,5 +8,5 @@ import jakarta.validation.constraints.Size;
 @Schema(description = "Credenciales de acceso.")
 public record LoginRequest(
         @NotBlank @Email @Size(max = 100) String correo,
-        @NotBlank @Size(min = 4, max = 10) String pass) {
+        @NotBlank @Size(min = 12, max = 128) String password) {
 }

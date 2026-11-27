@@ -1,9 +1,9 @@
 package com.gamerzone.auth.controller;
 
 import java.math.BigInteger;
-import java.security.interfaces.RSAPublicKey;
 import java.util.Base64;
 import java.util.Map;
+import java.util.List;
 
 import com.gamerzone.auth.config.JwtKeyProvider;
 import com.gamerzone.auth.service.JwtService;
@@ -16,15 +16,12 @@ public class DiscoveryController {
 
     private final JwtKeyProvider keys;
     private final String issuer;
-    private final String keyId;
 
     public DiscoveryController(
             JwtKeyProvider keys,
-            @Value("${auth.jwt.issuer}") String issuer,
-            @Value("${auth.jwt.key-id}") String keyId) {
+            @Value("${auth.jwt.issuer}") String issuer) {
         this.keys = keys;
         this.issuer = issuer;
-        this.keyId = keyId;
     }
 
     @GetMapping("/.well-known/openid-configuration")
@@ -40,14 +37,16 @@ public class DiscoveryController {
 
     @GetMapping("/.well-known/jwks.json")
     public Map<String, Object> jwks() {
-        RSAPublicKey publicKey = keys.publicKey();
-        return Map.of("keys", new Object[]{Map.of(
-                "kty", "RSA",
-                "use", "sig",
-                "alg", JwtService.ALGORITHM,
-                "kid", keyId,
-                "n", base64Url(publicKey.getModulus()),
-                "e", base64Url(publicKey.getPublicExponent()))});
+        List<Map<String, String>> publicJwks = keys.verificationKeys().stream()
+                .map(key -> Map.of(
+                        "kty", "RSA",
+                        "use", "sig",
+                        "alg", JwtService.ALGORITHM,
+                        "kid", key.keyId(),
+                        "n", base64Url(key.publicKey().getModulus()),
+                        "e", base64Url(key.publicKey().getPublicExponent())))
+                .toList();
+        return Map.of("keys", publicJwks);
     }
 
     private static String base64Url(BigInteger value) {

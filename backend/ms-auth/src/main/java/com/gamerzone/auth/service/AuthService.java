@@ -1,6 +1,8 @@
 package com.gamerzone.auth.service;
 
 import java.util.Locale;
+import java.time.Clock;
+import java.time.Duration;
 
 import com.gamerzone.auth.dto.request.LoginRequest;
 import com.gamerzone.auth.dto.request.RegistroRequest;
@@ -24,18 +26,23 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final RutValidator rutValidator;
     private final JwtService jwtService;
+    private final RefreshTokenService refreshTokenService;
+    private final Clock clock;
 
     public AuthService(UsuarioRepository usuarioRepository, ComunaRepository comunaRepository,
-            PasswordEncoder passwordEncoder, RutValidator rutValidator, JwtService jwtService) {
+            PasswordEncoder passwordEncoder, RutValidator rutValidator, JwtService jwtService,
+            RefreshTokenService refreshTokenService, Clock clock) {
         this.usuarioRepository = usuarioRepository;
         this.comunaRepository = comunaRepository;
         this.passwordEncoder = passwordEncoder;
         this.rutValidator = rutValidator;
         this.jwtService = jwtService;
+        this.refreshTokenService = refreshTokenService;
+        this.clock = clock;
     }
 
     @Transactional
-    public UsuarioResponse register(RegistroRequest request) {
+    public AuthSessionResult register(RegistroRequest request) {
         String rut = rutValidator.normalize(request.rut());
         String correo = request.correo().trim().toLowerCase(Locale.ROOT);
         if (!rutValidator.isValid(rut)) {
@@ -56,23 +63,57 @@ public class AuthService {
                         request.region().trim().toLowerCase(Locale.ROOT), request.comuna().trim())
                 .orElseThrow(() -> new ApiException(HttpStatus.BAD_REQUEST, "INVALID_COMMUNE",
                         "La comuna no corresponde a la región indicada."));
-        Usuario usuario = new Usuario(rut, request.nombre().trim(), request.apellido().trim(), correo,
-                passwordEncoder.encode(request.pass()), comuna, request.direccion().trim());
-        return usuarioRepository.save(usuario).toResponse();
+        Usuario usuario = new Usuario(rut, request.nombre().trim(), request.apellidos().trim(), correo,
+                passwordEncoder.encode(request.password()), comuna, request.direccion().trim());
+        return createSession(usuarioRepository.save(usuario));
+    }
+
+    @Transactional
+    public AuthSessionResult authenticate(LoginRequest request) {
+        Usuario usuario = usuarioRepository.findByCorreoIgnoreCase(request.correo().trim())
+                .filter(Usuario::isActive)
+                .filter(account -> passwordEncoder.matches(request.password(), account.getPasswordHash()))
+                .orElseThrow(() -> new ApiException(HttpStatus.UNAUTHORIZED, "INVALID_CREDENTIALS",
+                        "Correo o contraseña incorrectos."));
+        return createSession(usuario);
+    }
+
+    public AuthSessionResult refresh(String refreshToken) {
+        RefreshSessionGrant grant = refreshTokenService.rotate(refreshToken);
+        return toSessionResult(grant.usuario(), grant.refreshToken(), grant.expiresAt());
+    }
+
+    public void logout(String refreshToken) {
+        refreshTokenService.revoke(refreshToken);
     }
 
     @Transactional(readOnly = true)
-    public AuthResponse authenticate(LoginRequest request) {
-        Usuario usuario = usuarioRepository.findByCorreoIgnoreCase(request.correo().trim())
+    public UsuarioResponse findCurrentUser(String userId) {
+        return usuarioRepository.findById(userId)
                 .filter(Usuario::isActive)
-                .filter(account -> passwordEncoder.matches(request.pass(), account.getPasswordHash()))
-                .orElseThrow(() -> new ApiException(HttpStatus.UNAUTHORIZED, "INVALID_CREDENTIALS",
-                        "Correo o contraseña incorrectos."));
-        return new AuthResponse("Bearer", jwtService.issue(usuario),
-                jwtService.expiresInSeconds(), usuario.toResponse());
+                .map(Usuario::toResponse)
+                .orElseThrow(() -> new ApiException(HttpStatus.UNAUTHORIZED, "INVALID_SESSION",
+                        "La sesión no es válida o expiró. Inicia sesión nuevamente."));
+    }
+
+    private AuthSessionResult createSession(Usuario usuario) {
+        RefreshTokenGrant grant = refreshTokenService.createSession(usuario.getId());
+        return toSessionResult(usuario, grant.refreshToken(), grant.expiresAt());
+    }
+
+    private AuthSessionResult toSessionResult(Usuario usuario, String rawRefreshToken,
+            java.time.Instant refreshExpiresAt) {
+        AuthResponse response = new AuthResponse(
+                "Bearer",
+                jwtService.issue(usuario),
+                jwtService.expiresInSeconds(),
+                usuario.toResponse());
+        long maxAgeSeconds = Math.max(0, Duration.between(clock.instant(), refreshExpiresAt).getSeconds());
+        return new AuthSessionResult(response, rawRefreshToken, maxAgeSeconds);
     }
 
     private static boolean allowedEmail(String email) {
-        return email.endsWith("@duoc.cl") || email.endsWith("@profesor.duoc.cl") || email.endsWith("@gmail.com");
+        return email.endsWith("@duoc.cl") || email.endsWith("@duocuc.cl")
+                || email.endsWith("@profesor.duoc.cl") || email.endsWith("@gmail.com");
     }
 }

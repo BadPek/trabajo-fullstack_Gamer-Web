@@ -18,10 +18,17 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.oauth2.core.DelegatingOAuth2TokenValidator;
+import org.springframework.security.oauth2.core.OAuth2Error;
+import org.springframework.security.oauth2.core.OAuth2TokenValidator;
+import org.springframework.security.oauth2.core.OAuth2TokenValidatorResult;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.security.oauth2.jwt.JwtValidators;
+import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
 import org.springframework.util.StringUtils;
@@ -65,8 +72,30 @@ public class SecurityConfig {
     }
 
     @Bean
+    public JwtDecoder jwtDecoder(
+            @Value("${spring.security.oauth2.resourceserver.jwt.issuer-uri}") String issuer,
+            @Value("${spring.security.oauth2.resourceserver.jwt.jwk-set-uri:${JWT_JWKS_URI:${JWT_ISSUER_URI:http://localhost:8084}/.well-known/jwks.json}}") String jwkSetUri,
+            @Value("${catalogo.security.jwt.audience:ms-catalogo}") String audience) {
+        NimbusJwtDecoder decoder = NimbusJwtDecoder.withJwkSetUri(jwkSetUri).build();
+        decoder.setJwtValidator(new DelegatingOAuth2TokenValidator<>(
+                JwtValidators.createDefaultWithIssuer(issuer),
+                audienceValidator(audience)));
+        return decoder;
+    }
+
+    static OAuth2TokenValidator<Jwt> audienceValidator(String audience) {
+        if (!StringUtils.hasText(audience)) {
+            throw new IllegalArgumentException("La audiencia JWT de ms-catalogo es obligatoria.");
+        }
+        return jwt -> jwt.getAudience().contains(audience)
+                ? OAuth2TokenValidatorResult.success()
+                : OAuth2TokenValidatorResult.failure(
+                        new OAuth2Error("invalid_token", "El token no está destinado a ms-catalogo.", null));
+    }
+
+    @Bean
     public JwtAuthenticationConverter jwtAuthenticationConverter(
-            @Value("${catalogo.security.jwt.authorities-claim:}") String authoritiesClaim,
+            @Value("${catalogo.security.jwt.authorities-claim:roles}") String authoritiesClaim,
             @Value("${catalogo.security.jwt.authority-prefix:ROLE_}") String authorityPrefix) {
         JwtGrantedAuthoritiesConverter authoritiesConverter = new JwtGrantedAuthoritiesConverter();
         if (StringUtils.hasText(authoritiesClaim)) {

@@ -30,6 +30,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -136,6 +137,24 @@ public class ContactoController {
             @Pattern(regexp = "(?i)^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$")
             String id) {
         contactoService.delete(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @DeleteMapping("/admin/contact-messages/by-user/{userId}")
+    @Operation(
+            summary = "Eliminar mensajes asociados a una cuenta anonimizada",
+            description = "Operación administrativa invocada durante la baja de una cuenta.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "204", description = "Mensajes asociados eliminados."),
+            @ApiResponse(responseCode = "400", description = "Identificador inválido."),
+            @ApiResponse(responseCode = "401", description = "JWT ausente o inválido."),
+            @ApiResponse(responseCode = "403", description = "Se requiere ADMINISTRADOR.")
+    })
+    public ResponseEntity<Void> deleteForUser(
+            @PathVariable
+            @Pattern(regexp = "(?i)^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$")
+            String userId) {
+        contactoService.deleteForUser(userId);
         return ResponseEntity.noContent().build();
     }
 

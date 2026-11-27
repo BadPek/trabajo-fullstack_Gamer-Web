@@ -10,6 +10,7 @@ import java.util.stream.Collectors;
 
 import cl.gamerzone.catalogo.dto.product.AdminProductDetailResponse;
 import cl.gamerzone.catalogo.dto.product.AdminProductPageResponse;
+import cl.gamerzone.catalogo.dto.product.AdminProductResponse;
 import cl.gamerzone.catalogo.dto.product.ProductCreateRequest;
 import cl.gamerzone.catalogo.dto.product.ProductDetailResponse;
 import cl.gamerzone.catalogo.dto.product.ProductDetails;
@@ -94,8 +95,29 @@ public class ProductService {
                 products.getTotalPages());
     }
 
+    @Transactional(readOnly = true)
     public AdminProductPageResponse findAdmin(int page, int size, ProductStatus status) {
-        throw persistenceNotConfigured();
+        PageRequest pageable = PageRequest.of(
+                page,
+                size,
+                Sort.by(Sort.Order.desc("createdAt"), Sort.Order.asc("id")));
+        Page<AdminProductResponse> products = productRepository.findAdminProducts(
+                        status == null ? null : status.name(),
+                        pageable)
+                .map(product -> new AdminProductResponse(
+                        product.getId(),
+                        ProductStatus.valueOf(product.getStatus()),
+                        product.getTitulo(),
+                        product.getPrecio(),
+                        product.getCategoria(),
+                        product.getImagen(),
+                        product.getDescripcionCorta()));
+        return new AdminProductPageResponse(
+                products.getContent(),
+                products.getNumber(),
+                products.getSize(),
+                products.getTotalElements(),
+                products.getTotalPages());
     }
 
     @Transactional(readOnly = true)
@@ -105,8 +127,11 @@ public class ProductService {
         return toDetailResponse(product);
     }
 
+    @Transactional(readOnly = true)
     public AdminProductDetailResponse findAdminById(UUID id) {
-        throw persistenceNotConfigured();
+        return productRepository.findById(id)
+                .map(this::toAdminDetailResponse)
+                .orElseThrow(() -> new ResponseStatusException(NOT_FOUND));
     }
 
     @Transactional
@@ -121,56 +146,106 @@ public class ProductService {
                 request.detalles().fechaLanzamiento(),
                 trimToNull(request.video()));
 
-        product.getCompanies().add(new ProductCompanyEntity(
+        addProductRelations(
                 product,
-                findOrCreateCompany(request.detalles().desarrollador()),
-                DEVELOPER_ROLE));
-        product.getCompanies().add(new ProductCompanyEntity(
-                product,
-                findOrCreateCompany(request.detalles().editor()),
-                PUBLISHER_ROLE));
-
-        product.getMedia().add(new ProductMediaEntity(
-                product,
-                trim(request.imagen()),
-                COVER_ROLE,
-                0));
-        for (int index = 0; index < request.galeria().size(); index++) {
-            product.getMedia().add(new ProductMediaEntity(
-                    product,
-                    trim(request.galeria().get(index)),
-                    GALLERY_ROLE,
-                    index + 1));
-        }
-
-        request.detalles().modos().stream()
-                .map(this::trim)
-                .map(this::findOrCreateGameMode)
-                .map(mode -> new ProductGameModeEntity(product, mode))
-                .forEach(product.getGameModes()::add);
-        request.detalles().idiomas().stream()
-                .map(this::trim)
-                .map(this::findOrCreateLanguage)
-                .map(language -> new ProductLanguageEntity(product, language))
-                .forEach(product.getLanguages()::add);
-
-        product.getRequirements().add(toEntity(product, MINIMUM_REQUIREMENTS, request.requisitos().minimos()));
-        product.getRequirements().add(toEntity(product, RECOMMENDED_REQUIREMENTS, request.requisitos().recomendados()));
+                request.imagen(),
+                request.galeria(),
+                request.detalles(),
+                request.requisitos());
 
         ProductEntity saved = productRepository.save(product);
         return toAdminDetailResponse(saved);
     }
 
+    @Transactional
     public AdminProductDetailResponse update(UUID id, ProductUpdateRequest request) {
-        throw persistenceNotConfigured();
+        ProductEntity product = findProductForAdmin(id);
+        product.setTitle(trim(request.titulo()));
+        product.setPriceClp(request.precio());
+        product.setCategory(findOrCreateCategory(request.categoria()));
+        product.setShortDescription(trim(request.descripcionCorta()));
+        product.setDescriptionText(trim(request.descripcion()));
+        product.setReleaseDate(request.detalles().fechaLanzamiento());
+        product.setVideoUrl(trimToNull(request.video()));
+
+        product.getCompanies().clear();
+        product.getMedia().clear();
+        product.getGameModes().clear();
+        product.getLanguages().clear();
+        product.getRequirements().clear();
+        productRepository.flush();
+
+        addProductRelations(
+                product,
+                request.imagen(),
+                request.galeria(),
+                request.detalles(),
+                request.requisitos());
+        productRepository.flush();
+        return toAdminDetailResponse(product);
     }
 
+    @Transactional
     public void archive(UUID id) {
-        throw persistenceNotConfigured();
+        ProductEntity product = findProductForAdmin(id);
+        product.setStatus(ProductStatus.ARCHIVED.name());
+        productRepository.flush();
     }
 
+    @Transactional
     public AdminProductDetailResponse updateStatus(UUID id, ProductStatus status) {
-        throw persistenceNotConfigured();
+        ProductEntity product = findProductForAdmin(id);
+        product.setStatus(status.name());
+        productRepository.flush();
+        return toAdminDetailResponse(product);
+    }
+
+    private ProductEntity findProductForAdmin(UUID id) {
+        return productRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(NOT_FOUND));
+    }
+
+    private void addProductRelations(
+            ProductEntity product,
+            String image,
+            List<String> gallery,
+            ProductDetails details,
+            ProductRequirements requirements) {
+        product.getCompanies().add(new ProductCompanyEntity(
+                product,
+                findOrCreateCompany(details.desarrollador()),
+                DEVELOPER_ROLE));
+        product.getCompanies().add(new ProductCompanyEntity(
+                product,
+                findOrCreateCompany(details.editor()),
+                PUBLISHER_ROLE));
+
+        product.getMedia().add(new ProductMediaEntity(
+                product,
+                trim(image),
+                COVER_ROLE,
+                0));
+        for (int index = 0; index < gallery.size(); index++) {
+            product.getMedia().add(new ProductMediaEntity(
+                    product,
+                    trim(gallery.get(index)),
+                    GALLERY_ROLE,
+                    index + 1));
+        }
+
+        details.modos().stream()
+                .map(this::trim)
+                .map(this::findOrCreateGameMode)
+                .map(mode -> new ProductGameModeEntity(product, mode))
+                .forEach(product.getGameModes()::add);
+        details.idiomas().stream()
+                .map(this::trim)
+                .map(this::findOrCreateLanguage)
+                .map(language -> new ProductLanguageEntity(product, language))
+                .forEach(product.getLanguages()::add);
+
+        product.getRequirements().add(toEntity(product, MINIMUM_REQUIREMENTS, requirements.minimos()));
+        product.getRequirements().add(toEntity(product, RECOMMENDED_REQUIREMENTS, requirements.recomendados()));
     }
 
     private IllegalStateException persistenceNotConfigured() {

@@ -27,7 +27,9 @@ import org.hibernate.type.SqlTypes;
 public class Usuario {
 
     public static final String ROL_CLIENTE = "CLIENTE";
+    public static final String ROL_ADMINISTRADOR = "ADMINISTRADOR";
     public static final String ESTADO_ACTIVO = "ACTIVE";
+    public static final String ESTADO_INACTIVO = "INACTIVE";
 
     @Id
     @JdbcTypeCode(SqlTypes.CHAR)
@@ -88,6 +90,16 @@ public class Usuario {
         this.status = ESTADO_ACTIVO;
     }
 
+    public static Usuario bootstrapAdministrator(String correo, String passwordHash) {
+        Usuario usuario = new Usuario();
+        usuario.id = UUID.randomUUID().toString();
+        usuario.correo = correo;
+        usuario.passwordHash = passwordHash;
+        usuario.rol = ROL_ADMINISTRADOR;
+        usuario.status = ESTADO_ACTIVO;
+        return usuario;
+    }
+
     @PrePersist
     void assignId() {
         if (id == null) {
@@ -98,6 +110,44 @@ public class Usuario {
     /** Solo una cuenta activa y no anonimizada puede iniciar sesión. */
     public boolean isActive() {
         return ESTADO_ACTIVO.equals(status) && anonymizedAt == null;
+    }
+
+    public boolean hasCompleteProfile() {
+        return rut != null && nombre != null && apellido != null && comuna != null && direccion != null;
+    }
+
+    public void updateProfile(String rut, String nombre, String apellido, String correo,
+            Comuna comuna, String direccion) {
+        this.rut = rut;
+        this.nombre = nombre;
+        this.apellido = apellido;
+        this.correo = correo;
+        this.comuna = comuna;
+        this.direccion = direccion;
+    }
+
+    public void changeRole(String rol) {
+        this.rol = rol;
+    }
+
+    public void changeStatus(String status) {
+        this.status = status;
+    }
+
+    public void changePasswordHash(String passwordHash) {
+        this.passwordHash = passwordHash;
+    }
+
+    public void anonymize(LocalDateTime at) {
+        this.rut = null;
+        this.nombre = null;
+        this.apellido = null;
+        this.correo = "deleted+" + id + "@invalid.local";
+        this.passwordHash = null;
+        this.comuna = null;
+        this.direccion = null;
+        this.status = ESTADO_INACTIVO;
+        this.anonymizedAt = at;
     }
 
     public String getId() { return id; }
@@ -115,8 +165,6 @@ public class Usuario {
     public LocalDateTime getUpdatedAt() { return updatedAt; }
 
     public UsuarioResponse toResponse() {
-        String region = comuna == null ? null : comuna.getRegion().getCode();
-        String nombreComuna = comuna == null ? null : comuna.getName();
-        return new UsuarioResponse(id, rut, nombre, apellido, correo, region, nombreComuna, direccion);
+        return new UsuarioResponse(id, nombre, apellido, correo, rol);
     }
 }

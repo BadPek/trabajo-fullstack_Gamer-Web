@@ -27,14 +27,29 @@ class JwtAuthenticationConverterTests {
     }
 
     @Test
-    void doesNotAssumeARolesClaimWhenNoAuthorityClaimIsConfigured() {
-        JwtAuthenticationConverter converter = securityConfig.jwtAuthenticationConverter("", "ROLE_");
+    void mapsTheContractRolesClaimToRoleAuthorities() {
+        JwtAuthenticationConverter converter = securityConfig.jwtAuthenticationConverter("roles", "ROLE_");
         Jwt jwt = Jwt.withTokenValue("token")
                 .header("alg", "none")
                 .claim("roles", List.of("ADMINISTRADOR"))
                 .build();
 
-        assertFalse(converter.convert(jwt).getAuthorities().stream()
+        assertTrue(converter.convert(jwt).getAuthorities().stream()
                 .anyMatch(authority -> authority.getAuthority().equals("ROLE_ADMINISTRADOR")));
+    }
+
+    @Test
+    void audienceValidatorAcceptsOnlyTokensIncludingThisService() {
+        Jwt accepted = Jwt.withTokenValue("token")
+                .header("alg", "RS256")
+                .claim("aud", List.of("ms-catalogo", "ms-carrito"))
+                .build();
+        Jwt rejected = Jwt.withTokenValue("token")
+                .header("alg", "RS256")
+                .claim("aud", List.of("ms-carrito"))
+                .build();
+
+        assertFalse(SecurityConfig.audienceValidator("ms-catalogo").validate(accepted).hasErrors());
+        assertTrue(SecurityConfig.audienceValidator("ms-catalogo").validate(rejected).hasErrors());
     }
 }

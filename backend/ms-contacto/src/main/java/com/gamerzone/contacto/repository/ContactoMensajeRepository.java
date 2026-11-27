@@ -6,4 +6,6 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 
 public interface ContactoMensajeRepository extends JpaRepository<ContactoMensaje, String>,
         JpaSpecificationExecutor<ContactoMensaje> {
+
+    long deleteByUserId(String userId);
 }

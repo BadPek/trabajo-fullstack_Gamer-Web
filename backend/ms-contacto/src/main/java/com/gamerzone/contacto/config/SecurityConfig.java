@@ -18,6 +18,14 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.oauth2.core.DelegatingOAuth2TokenValidator;
+import org.springframework.security.oauth2.core.OAuth2Error;
+import org.springframework.security.oauth2.core.OAuth2TokenValidator;
+import org.springframework.security.oauth2.core.OAuth2TokenValidatorResult;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.security.oauth2.jwt.JwtValidators;
+import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
 import org.springframework.security.web.AuthenticationEntryPoint;
@@ -31,6 +39,7 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(
             HttpSecurity http,
+            JwtDecoder jwtDecoder,
             JwtAuthenticationConverter jwtAuthenticationConverter,
             AuthenticationEntryPoint apiAuthenticationEntryPoint,
             AccessDeniedHandler apiAccessDeniedHandler) throws Exception {
@@ -55,14 +64,36 @@ public class SecurityConfig {
             .oauth2ResourceServer(oauth2 -> oauth2
                     .authenticationEntryPoint(apiAuthenticationEntryPoint)
                     .accessDeniedHandler(apiAccessDeniedHandler)
-                    .jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter)));
+            .jwt(jwt -> jwt.decoder(jwtDecoder).jwtAuthenticationConverter(jwtAuthenticationConverter)));
 
         return http.build();
     }
 
     @Bean
+    public JwtDecoder jwtDecoder(
+            @Value("${spring.security.oauth2.resourceserver.jwt.issuer-uri}") String issuer,
+            @Value("${spring.security.oauth2.resourceserver.jwt.jwk-set-uri:${JWT_JWKS_URI:${JWT_ISSUER_URI:http://localhost:8084}/.well-known/jwks.json}}") String jwkSetUri,
+            @Value("${contacto.security.jwt.audience:ms-contacto}") String audience) {
+        NimbusJwtDecoder decoder = NimbusJwtDecoder.withJwkSetUri(jwkSetUri).build();
+        decoder.setJwtValidator(new DelegatingOAuth2TokenValidator<>(
+                JwtValidators.createDefaultWithIssuer(issuer),
+                audienceValidator(audience)));
+        return decoder;
+    }
+
+    static OAuth2TokenValidator<Jwt> audienceValidator(String audience) {
+        if (!StringUtils.hasText(audience)) {
+            throw new IllegalArgumentException("La audiencia JWT de ms-contacto es obligatoria.");
+        }
+        return jwt -> jwt.getAudience().contains(audience)
+                ? OAuth2TokenValidatorResult.success()
+                : OAuth2TokenValidatorResult.failure(
+                        new OAuth2Error("invalid_token", "El token no está destinado a ms-contacto.", null));
+    }
+
+    @Bean
     public JwtAuthenticationConverter jwtAuthenticationConverter(
-            @Value("${contacto.security.jwt.authorities-claim:}") String authoritiesClaim,
+            @Value("${contacto.security.jwt.authorities-claim:roles}") String authoritiesClaim,
             @Value("${contacto.security.jwt.authority-prefix:ROLE_}") String authorityPrefix) {
         JwtGrantedAuthoritiesConverter authoritiesConverter = new JwtGrantedAuthoritiesConverter();
         if (StringUtils.hasText(authoritiesClaim)) {

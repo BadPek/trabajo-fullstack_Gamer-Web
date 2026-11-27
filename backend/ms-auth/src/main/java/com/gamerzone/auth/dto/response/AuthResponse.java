@@ -7,5 +7,5 @@ public record AuthResponse(
         String tokenType,
         String accessToken,
         long expiresIn,
-        UsuarioResponse usuario) {
+        UsuarioResponse user) {
 }

@@ -120,7 +120,7 @@ public class ProductController {
             @ApiResponse(responseCode = "403", description = "Se requiere ADMINISTRADOR.",
                     content = @Content(mediaType = "application/problem+json",
                             schema = @Schema(implementation = ApiError.class))),
-            @ApiResponse(responseCode = "500", description = "Persistencia pendiente.",
+            @ApiResponse(responseCode = "500", description = "Error al consultar el catálogo.",
                     content = @Content(mediaType = "application/problem+json",
                             schema = @Schema(implementation = ApiError.class)))
     })
@@ -155,7 +155,7 @@ public class ProductController {
             @ApiResponse(responseCode = "404", description = "Producto no encontrado.",
                     content = @Content(mediaType = "application/problem+json",
                             schema = @Schema(implementation = ApiError.class))),
-            @ApiResponse(responseCode = "500", description = "Persistencia pendiente.",
+            @ApiResponse(responseCode = "500", description = "Error al consultar el producto.",
                     content = @Content(mediaType = "application/problem+json",
                             schema = @Schema(implementation = ApiError.class)))
     })
@@ -208,12 +208,12 @@ public class ProductController {
     @PutMapping("/admin/products/{id}")
     @Operation(
             summary = "Actualizar producto completamente",
-            description = "Requiere ADMINISTRADOR. La operación no estará disponible hasta integrar la persistencia "
-                    + "del modelo relacional aprobado.",
+            description = "Requiere ADMINISTRADOR. Reemplaza los datos del producto y sus relaciones; conserva "
+                    + "el estado actual, que se modifica mediante PATCH.",
             security = @SecurityRequirement(name = "bearerAuth"))
     @ApiResponses({
             @ApiResponse(responseCode = "200",
-                    description = "Respuesta contractual prevista; todavía no está disponible.",
+                    description = "Producto actualizado.",
                     content = @Content(mediaType = "application/json",
                             schema = @Schema(implementation = AdminProductDetailResponse.class))),
             @ApiResponse(responseCode = "400", description = "ID o solicitud inválidos.",
@@ -231,7 +231,7 @@ public class ProductController {
             @ApiResponse(responseCode = "415", description = "Tipo de contenido no soportado.",
                     content = @Content(mediaType = "application/problem+json",
                             schema = @Schema(implementation = ApiError.class))),
-            @ApiResponse(responseCode = "500", description = "Persistencia pendiente.",
+            @ApiResponse(responseCode = "500", description = "Error interno al actualizar el producto.",
                     content = @Content(mediaType = "application/problem+json",
                             schema = @Schema(implementation = ApiError.class)))
     })
@@ -251,12 +251,11 @@ public class ProductController {
     @DeleteMapping("/admin/products/{id}")
     @Operation(
             summary = "Archivar producto",
-            description = "Requiere ADMINISTRADOR. Cuando exista persistencia, implementará archivado lógico. "
-                    + "Actualmente no está disponible.",
+            description = "Requiere ADMINISTRADOR. Marca el producto como ARCHIVED sin eliminar sus datos.",
             security = @SecurityRequirement(name = "bearerAuth"))
     @ApiResponses({
             @ApiResponse(responseCode = "204",
-                    description = "Respuesta contractual prevista; todavía no está disponible."),
+                    description = "Producto archivado."),
             @ApiResponse(responseCode = "400", description = "ID inválido.",
                     content = @Content(mediaType = "application/problem+json",
                             schema = @Schema(implementation = ApiError.class))),
@@ -269,7 +268,7 @@ public class ProductController {
             @ApiResponse(responseCode = "404", description = "Producto no encontrado.",
                     content = @Content(mediaType = "application/problem+json",
                             schema = @Schema(implementation = ApiError.class))),
-            @ApiResponse(responseCode = "500", description = "Persistencia pendiente.",
+            @ApiResponse(responseCode = "500", description = "Error interno al archivar el producto.",
                     content = @Content(mediaType = "application/problem+json",
                             schema = @Schema(implementation = ApiError.class)))
     })
@@ -302,7 +301,7 @@ public class ProductController {
             @ApiResponse(responseCode = "404", description = "Producto no encontrado.",
                     content = @Content(mediaType = "application/problem+json",
                             schema = @Schema(implementation = ApiError.class))),
-            @ApiResponse(responseCode = "500", description = "Persistencia pendiente.",
+            @ApiResponse(responseCode = "500", description = "Error interno al cambiar el estado del producto.",
                     content = @Content(mediaType = "application/problem+json",
                             schema = @Schema(implementation = ApiError.class)))
     })

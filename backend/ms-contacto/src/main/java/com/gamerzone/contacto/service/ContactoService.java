@@ -92,6 +92,11 @@ public class ContactoService {
         repository.flush();
     }
 
+    @Transactional
+    public void deleteForUser(String userId) {
+        repository.deleteByUserId(normalizeUuid(userId));
+    }
+
     private static String normalizeUuid(String value) {
         if (value == null) {
             throw new ResponseStatusException(

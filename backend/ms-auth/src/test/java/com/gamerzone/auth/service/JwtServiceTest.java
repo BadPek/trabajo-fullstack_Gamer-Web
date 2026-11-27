@@ -1,7 +1,9 @@
 package com.gamerzone.auth.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.nio.charset.StandardCharsets;
 import java.security.KeyPair;
@@ -23,11 +25,14 @@ class JwtServiceTest {
         KeyPairGenerator generator = KeyPairGenerator.getInstance("RSA");
         generator.initialize(2048);
         KeyPair pair = generator.generateKeyPair();
+        var objectMapper = JsonMapper.builder().build();
         JwtKeyProvider keys = new JwtKeyProvider(
+                "key-1",
                 pem("PRIVATE KEY", pair.getPrivate().getEncoded()),
-                pem("PUBLIC KEY", pair.getPublic().getEncoded()));
-        JwtService service = new JwtService(keys, JsonMapper.builder().build(),
-                "https://auth.example.test", "key-1", 900);
+                pem("PUBLIC KEY", pair.getPublic().getEncoded()), "[]", objectMapper);
+        JwtService service = new JwtService(keys, objectMapper,
+                "https://auth.example.test", 600,
+                "ms-catalogo,ms-carrito,ms-contacto,ms-pedido");
         Usuario usuario = new Usuario("190110222", "Ana", "Gamer", "ana@gmail.com", "unused-hash",
                 new Comuna(101, new Region(1, "metropolitana", "Región Metropolitana de Santiago"),
                         "Santiago Centro"),
@@ -45,8 +50,29 @@ class JwtServiceTest {
         assertTrue(header.contains("\"alg\":\"RS256\""));
         assertTrue(claims.contains("\"iss\":\"https://auth.example.test\""));
         assertTrue(claims.contains("\"sub\":\"" + usuario.getId() + "\""));
+        assertTrue(claims.contains("\"aud\":[\"ms-catalogo\",\"ms-carrito\",\"ms-contacto\",\"ms-pedido\"]"));
         assertTrue(claims.contains("\"email\":\"ana@gmail.com\""));
-        assertTrue(claims.contains("\"authorities\":[\"CLIENTE\"]"));
+        assertTrue(claims.contains("\"roles\":[\"CLIENTE\"]"));
+        assertFalse(claims.contains("\"authorities\""));
+        assertEquals(600, service.expiresInSeconds());
+    }
+
+    @Test
+    void rejectsBlankOrDuplicateAudienceConfiguration() throws Exception {
+        KeyPairGenerator generator = KeyPairGenerator.getInstance("RSA");
+        generator.initialize(2048);
+        KeyPair pair = generator.generateKeyPair();
+        var objectMapper = JsonMapper.builder().build();
+        JwtKeyProvider keys = new JwtKeyProvider(
+                "key-1",
+                pem("PRIVATE KEY", pair.getPrivate().getEncoded()),
+                pem("PUBLIC KEY", pair.getPublic().getEncoded()), "[]", objectMapper);
+
+        assertThrows(IllegalArgumentException.class, () -> new JwtService(
+                keys, objectMapper, "https://auth.example.test", 600, " "));
+        assertThrows(IllegalArgumentException.class, () -> new JwtService(
+                keys, objectMapper, "https://auth.example.test", 600,
+                "ms-carrito,ms-carrito"));
     }
 
     private static String pem(String label, byte[] bytes) {
