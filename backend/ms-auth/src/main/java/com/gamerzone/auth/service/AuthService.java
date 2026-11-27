@@ -1,0 +1,119 @@
+package com.gamerzone.auth.service;
+
+import java.util.Locale;
+import java.time.Clock;
+import java.time.Duration;
+
+import com.gamerzone.auth.dto.request.LoginRequest;
+import com.gamerzone.auth.dto.request.RegistroRequest;
+import com.gamerzone.auth.dto.response.AuthResponse;
+import com.gamerzone.auth.dto.response.UsuarioResponse;
+import com.gamerzone.auth.entity.Comuna;
+import com.gamerzone.auth.entity.Usuario;
+import com.gamerzone.auth.exception.ApiException;
+import com.gamerzone.auth.repository.ComunaRepository;
+import com.gamerzone.auth.repository.UsuarioRepository;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+@Service
+public class AuthService {
+
+    private final UsuarioRepository usuarioRepository;
+    private final ComunaRepository comunaRepository;
+    private final PasswordEncoder passwordEncoder;
+    private final RutValidator rutValidator;
+    private final JwtService jwtService;
+    private final RefreshTokenService refreshTokenService;
+    private final Clock clock;
+
+    public AuthService(UsuarioRepository usuarioRepository, ComunaRepository comunaRepository,
+            PasswordEncoder passwordEncoder, RutValidator rutValidator, JwtService jwtService,
+            RefreshTokenService refreshTokenService, Clock clock) {
+        this.usuarioRepository = usuarioRepository;
+        this.comunaRepository = comunaRepository;
+        this.passwordEncoder = passwordEncoder;
+        this.rutValidator = rutValidator;
+        this.jwtService = jwtService;
+        this.refreshTokenService = refreshTokenService;
+        this.clock = clock;
+    }
+
+    @Transactional
+    public AuthSessionResult register(RegistroRequest request) {
+        String rut = rutValidator.normalize(request.rut());
+        String correo = request.correo().trim().toLowerCase(Locale.ROOT);
+        if (!rutValidator.isValid(rut)) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "INVALID_RUT", "El RUT no es válido.");
+        }
+        if (!allowedEmail(correo)) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "INVALID_EMAIL_DOMAIN",
+                    "Solo se permiten correos @duoc.cl, @profesor.duoc.cl o @gmail.com.");
+        }
+        if (usuarioRepository.existsByCorreoIgnoreCase(correo)) {
+            throw new ApiException(HttpStatus.CONFLICT, "EMAIL_ALREADY_REGISTERED",
+                    "El correo ya está registrado.");
+        }
+        if (usuarioRepository.existsByRut(rut)) {
+            throw new ApiException(HttpStatus.CONFLICT, "RUT_ALREADY_REGISTERED", "El RUT ya está registrado.");
+        }
+        Comuna comuna = comunaRepository.findByRegion_CodeAndNameIgnoreCase(
+                        request.region().trim().toLowerCase(Locale.ROOT), request.comuna().trim())
+                .orElseThrow(() -> new ApiException(HttpStatus.BAD_REQUEST, "INVALID_COMMUNE",
+                        "La comuna no corresponde a la región indicada."));
+        Usuario usuario = new Usuario(rut, request.nombre().trim(), request.apellidos().trim(), correo,
+                passwordEncoder.encode(request.password()), comuna, request.direccion().trim());
+        return createSession(usuarioRepository.save(usuario));
+    }
+
+    @Transactional
+    public AuthSessionResult authenticate(LoginRequest request) {
+        Usuario usuario = usuarioRepository.findByCorreoIgnoreCase(request.correo().trim())
+                .filter(Usuario::isActive)
+                .filter(account -> passwordEncoder.matches(request.password(), account.getPasswordHash()))
+                .orElseThrow(() -> new ApiException(HttpStatus.UNAUTHORIZED, "INVALID_CREDENTIALS",
+                        "Correo o contraseña incorrectos."));
+        return createSession(usuario);
+    }
+
+    public AuthSessionResult refresh(String refreshToken) {
+        RefreshSessionGrant grant = refreshTokenService.rotate(refreshToken);
+        return toSessionResult(grant.usuario(), grant.refreshToken(), grant.expiresAt());
+    }
+
+    public void logout(String refreshToken) {
+        refreshTokenService.revoke(refreshToken);
+    }
+
+    @Transactional(readOnly = true)
+    public UsuarioResponse findCurrentUser(String userId) {
+        return usuarioRepository.findById(userId)
+                .filter(Usuario::isActive)
+                .map(Usuario::toResponse)
+                .orElseThrow(() -> new ApiException(HttpStatus.UNAUTHORIZED, "INVALID_SESSION",
+                        "La sesión no es válida o expiró. Inicia sesión nuevamente."));
+    }
+
+    private AuthSessionResult createSession(Usuario usuario) {
+        RefreshTokenGrant grant = refreshTokenService.createSession(usuario.getId());
+        return toSessionResult(usuario, grant.refreshToken(), grant.expiresAt());
+    }
+
+    private AuthSessionResult toSessionResult(Usuario usuario, String rawRefreshToken,
+            java.time.Instant refreshExpiresAt) {
+        AuthResponse response = new AuthResponse(
+                "Bearer",
+                jwtService.issue(usuario),
+                jwtService.expiresInSeconds(),
+                usuario.toResponse());
+        long maxAgeSeconds = Math.max(0, Duration.between(clock.instant(), refreshExpiresAt).getSeconds());
+        return new AuthSessionResult(response, rawRefreshToken, maxAgeSeconds);
+    }
+
+    private static boolean allowedEmail(String email) {
+        return email.endsWith("@duoc.cl") || email.endsWith("@duocuc.cl")
+                || email.endsWith("@profesor.duoc.cl") || email.endsWith("@gmail.com");
+    }
+}
